@@ -698,8 +698,10 @@ for s in SCEN:
     s["lb"] = {kk: full[kk][i0 - lb_n:i0] for kk in ("dates", "o", "h", "l", "c")}
     s["k"] = {kk: full[kk][i0:] for kk in ("dates", "o", "h", "l", "c", "pct", "v")}
     # 资讯 = 手写还原报道 + 自动行情快报 + 大V观点/国际视野/场外杂谈扩充
+    # （手写资讯可能写到窗口起点之前作为背景铺垫——统一收拢到窗口首日，保证资讯日期不越界）
     # （去重：同一日期最多保留 3 条，手写报道优先级最高）
-    merged = sorted(s["news"] + auto_events(s["k"]) + enrich(s), key=lambda r: r[0])
+    merged = sorted([[w0 if d < w0 else d, t] for d, t in s["news"]]
+                    + auto_events(s["k"]) + enrich(s), key=lambda r: r[0])
     by_date = {}
     dedup = []
     prio = {"行情快报": 1, "大V观点": 2, "国际视野": 2, "场外杂谈": 3}

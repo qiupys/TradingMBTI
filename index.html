@@ -522,7 +522,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.16</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.17</span></div>
 </header>
 
 <main class="wrap">
@@ -759,27 +759,17 @@
   </section>
 </main>
 
-<script src="data.js?v=14"></script>
+<script src="data.js?v=15"></script>
+<script src="game-core.js?v=1"></script>
 <script>
 "use strict";
+const E = window.Engine;   // 纯游戏引擎（game-core.js），浏览器与 Node 测试共用同一份实现
 const CAP = 1000000;
-const ROUNDS = 10;   // 每局从 40 只池随机抽 10 只（见 data.js）
+const ROUNDS = 10;   // 每局从 40 只池随机抽 10 只（见 game-core.js 的 pickDeck）
 /* 评级阶梯：只有真正"高买低卖 + 深回撤 + 输给躺平"的灾难局才会垫底 */
 const TIERS = [[85, "人间清醒"], [72, "老手风范"], [58, "平平无奇"], [45, "情绪的奴隶"], [32, "资深韭菜"], [0, "天选接盘侠"]];
 
-/* 每局随机抽 10 只：先保证 ≥3 只创业板/科创板、≥2 只低波动，剩余名额从全池随机补齐。
-   旧版回填循环先吃配额池的剩余（6+4 恰好凑满 10），其他 20 只永远抽不到——每次都是同十只 */
-function pickDeck() {
-  const sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const pool = sh([...SCENARIOS]);                     // 全池先洗牌，之后按顺序取即随机
-  const deck = [];
-  const take = f => { for (const s of pool) if (!deck.includes(s) && f(s)) { deck.push(s); return true; } return false; };
-  let gemN = 0, lowN = 0;
-  while (gemN < 3 && take(s => s.code.startsWith("sz.3") || s.code.startsWith("sh.68"))) gemN++;
-  while (lowN < 2 && take(s => s.vol === "低波动" && !deck.includes(s))) lowN++;
-  while (deck.length < ROUNDS && take(() => true)) {}  // 剩余名额从洗好的全池补齐（含配额池外的 20 只）
-  return sh(deck);
-}
+function pickDeck() { return E.pickDeck(SCENARIOS, ROUNDS); }
 const $ = id => document.getElementById(id);
 const fmtW = v => (v/10000).toLocaleString("zh-CN", {maximumFractionDigits: 1}) + " 万";
 const fmtP = v => (v>=0?"+":"") + v.toFixed(2) + "%";
@@ -1290,61 +1280,35 @@ document.addEventListener("keydown", e => {
 document.getElementById("chart").addEventListener("click", () => { if (S && !S.done) nextDay(); });
 
 /* ============ 交易（全部按当日收盘价 · 仓位三档：空仓/半仓/满仓） ============ */
-function price() { return S.scen.k.c[S.i]; }
-function total() { return S.cash + S.shares * price(); }
-function posLevel() {
-  if (S.shares === 0) return 0;
-  // 买不起一手(100股)就视为满仓——高价股加仓后剩余现金不足一手，之前被误判成半仓
-  return S.cash < price() * 100 ? 2 : 1;   // 1=半仓 2=满仓
-}
+/* 交易数学全部在 Engine（game-core.js）里，UI 层只负责记账与重绘 */
+function price() { return E.price(S); }
+function total() { return E.total(S); }
+function posLevel() { return E.posLevel(S); }
 function record(t) {
-  t.r = G.r; t.i = S.i;
-  t.date = S.scen.k.dates[S.i];
-  t.pct = S.scen.k.pct[S.i] || 0;
-  t.nearNews = t.pct >= 3.5 || S.newsIdx.some(ni => S.i >= ni && S.i <= ni + 2);
+  t.r = G.r;
   S.trades.push(t);
   if (!t.forced) G.allTrades.push(t);
-  if (t.action.includes("买入")) {
-    const sc = S.scen, k = sc.k;
-    // 20 日高点要把入场前 lookback K线一起算：只用窗口内数据时，首日序列里只有自己，
-    // price >= hi20*0.97 恒成立，任何首日买入都会被误判成追高
-    const all = sc.lb.c.concat(k.c.slice(0, S.i + 1));
-    const hi20 = Math.max(...all.slice(-20));
-    t.chase = k.pct[S.i] >= 4 || t.price >= hi20 * 0.97;
-  }
   drawAll();
 }
 function buy(fraction) {
-  if (S.done) return;
-  const p = price();
-  const level = posLevel();
-  if (level === 2) return toastLog("已满仓——先卖出一半，才能再买回满仓");
-  if (level === 1) fraction = 1;            // 半仓时唯一买操作：加至满仓
-  // 空仓时全部资产就是现金，按当前现金的 fraction 计算——用期初资金会在亏损后再入场时买超、现金变负
-  const budget = S.cash * fraction;
-  const lots = Math.floor(budget / p / 100) * 100;
-  if (lots <= 0) return toastLog("资金不足，无法成交");
-  S.cost = (S.cost * S.shares + lots * p) / (S.shares + lots);
-  S.shares += lots;
-  S.cash -= lots * p;
-  const allIn = level === 0 && fraction === 1;
-  record({ action: level === 0 ? (allIn ? "满仓买入" : "买入半仓") : "加仓至满仓", price: p, shares: lots, allIn });
+  if (!S || S.done) return;
+  const t = E.buy(S, fraction);
+  if (!t) return;
+  if (t.error) return toastLog(t.error);
+  record(t);
 }
 function sellHalf() {
-  if (S.done) return;
-  if (posLevel() !== 2) return toastLog("半仓状态下没有再卖一半的操作，只能清仓");
-  const p = price();
-  const lots = Math.max(100, Math.floor(S.shares / 2 / 100) * 100);
-  const pnl = (p - S.cost) * lots;
-  S.cash += lots * p; S.shares -= lots;
-  record({ action: "卖出半仓", price: p, shares: lots, pnl, cost: S.cost });
+  if (!S || S.done) return;
+  const t = E.sellHalf(S);
+  if (!t) return;
+  if (t.error) return toastLog(t.error);
+  record(t);
 }
 function doClear() {
-  if (S.done || S.shares === 0) return;
-  const p = price(), sh = S.shares;
-  const pnl = (p - S.cost) * sh;
-  S.cash += sh * p; S.shares = 0;
-  record({ action: "清仓", price: p, shares: sh, pnl, cost: S.cost });
+  if (!S || S.done || S.shares === 0) return;
+  const t = E.clear(S);
+  if (!t) return;
+  record(t);
   toastLog("已清仓——可空仓观望，也可重新建仓；本局最后一个交易日收盘后自动结算");
 }
 $("btnHalf").onclick = () => buy(0.5);
@@ -1363,44 +1327,21 @@ function endRound() {
   if (!S || S.done) return;
   clearTimeout(S.settleTimer);
   S.done = true;
-  const k = S.scen.k;
   // 持仓按最后一日收盘价自动强平
-  if (S.shares > 0) {
-    const p = price(), sh = S.shares;
-    const pnl = (p - S.cost) * sh;
-    S.cash += sh * p; S.shares = 0;
-    record({ action: "强制清仓（本局窗口结束）", price: p, shares: sh, pnl, cost: S.cost, forced: true });
-    toastLog(`窗口结束，按收盘价 ${p.toFixed(2)} 强制平仓`);
+  const ft = E.forceClose(S);
+  if (ft) {
+    record(ft);
+    toastLog(`窗口结束，按收盘价 ${ft.price.toFixed(2)} 强制平仓`);
   }
   const noAction = S.trades.filter(t => !t.forced).length === 0;
   if (noAction) G.skipped.add(G.r);
-  const finalV = S.cash;
-  const ret = finalV / S.startCash - 1;
-  const bShares = Math.floor(S.startCash / k.c[0] / 100) * 100;
-  // 躺平 = 整手买入并持有到窗口结束；整手取整后剩下的零钱仍留在账户里，不能丢
-  const benchV = bShares * k.c[S.len - 1] + (S.startCash - bShares * k.c[0]);
-  const benchRet = benchV / S.startCash - 1;
-  G.rounds.push({ r: G.r, startCash: S.startCash, cash: finalV, trades: S.trades, benchEnd: benchV, ret, benchRet });
-  G.cash = finalV;
+  const rr = E.roundResult(S, S.scen);
+  G.rounds.push({ r: G.r, startCash: S.startCash, cash: rr.finalV, trades: S.trades, benchEnd: rr.benchV, ret: rr.ret, benchRet: rr.benchRet });
+  G.cash = rr.finalV;
   drawAll();
-  showSettle(S.scen, ret, benchRet, finalV - benchV, noAction);
+  showSettle(S.scen, rr.ret, rr.benchRet, rr.finalV - rr.benchV, noAction);
 }
-function roundFlags(scen, trades) {
-  const F = [];
-  const userT = trades.filter(t => !t.forced);
-  const buys = userT.filter(t => t.action.includes("买入") || t.action.includes("加仓"));
-  const sells = userT.filter(t => t.action.includes("卖出") || t.action.includes("清仓"));
-  const chase = buys.filter(t => t.chase);
-  const panic = sells.filter(t => t.pct <= -3.5);
-  const cutLoss = sells.filter(t => t.cost && t.price < t.cost * 0.95);
-  if (userT.length === 0) F.push(["good", "本局观望"]);
-  if (chase.length) F.push(["bad", `追高买入 ×${chase.length}`]);
-  if (panic.length) F.push(["bad", `恐慌日卖出 ×${panic.length}`]);
-  if (cutLoss.length) F.push(["bad", `割肉离场 ×${cutLoss.length}`]);
-  if (buys.some(t => t.allIn)) F.push(["bad", "一把梭"]);
-  if (!F.length) F.push(["good", "无典型偏差"]);
-  return F;
-}
+function roundFlags(scen, trades) { return E.roundFlags(trades); }
 function showSettle(scen, ret, benchRet, diff, noAction) {
   const k = scen.k;
   $("st-tag").textContent = `第 ${G.r + 1} / ${ROUNDS} 局 · 结算`;
@@ -1706,18 +1647,10 @@ function showReport() {
   const disposal = cutLoss.length > 0 && soldFly.length > 0;
   const noTrade = userT.length === 0;
 
-  /* 评分：62 基础分 + 相对躺平的收益差（±20，温和）- 行为偏差（封顶 -12）± 回撤/耐心修正 */
-  let score = 62;
-  score += Math.max(-20, Math.min(20, (userRet - benchRet) * 0.4));
-  const flagPenalty = chase.length * 2.5 + panic.length * 2.5 + soldFly.length * 2 + cutLoss.length * 1.5
-                    + (allIn ? 2 : 0) + (disposal ? 2 : 0);
-  score -= Math.min(12, flagPenalty);
-  if (mdd > 0.15) score -= 4;
-  if (mdd > 0.30) score -= 4;
-  if (G.skipped.size >= 4) score += 2;                       // 懂得空仓等待
-  if (noTrade) score = Math.max(48, Math.min(80, score + 8)); // 全程观望：不奖不重罚
-  score = Math.max(20, Math.min(95, Math.round(score)));
-  if (!Number.isFinite(score)) score = 50;
+  /* 评分引擎在 game-core.js：62 基础分 + 相对躺平的收益差（±20，温和）- 行为偏差（封顶 -12）± 回撤/耐心修正 */
+  const score = E.score(userRet, benchRet, mdd,
+    { chase: chase.length, panic: panic.length, cutLoss: cutLoss.length, soldFly: soldFly.length, allIn, disposal },
+    G.skipped.size, noTrade);
   const tier = (TIERS.find(t => score >= t[0]) || TIERS[TIERS.length-1])[1];
 
   $("rp-reveal").innerHTML = `十局终了 · 你经历了　<b>${ROUNDS} 只真实标的</b>　<span style="color:var(--ink-faint)">从低波白马到 20cm 妖股 · 观望 ${G.skipped.size} 局</span>`;
@@ -2079,7 +2012,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.16",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.17",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));

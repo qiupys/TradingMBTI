@@ -3,5 +3,8 @@ timetrader.db
 *.pyc
 __pycache__/
 .DS_Store
+# 测试产物
+tests/.tmp/
+tests/.smoke.db
 # WorkBuddy 工作区数据
 .workbuddy/

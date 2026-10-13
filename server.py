@@ -24,7 +24,8 @@ MODEL = "hy3"
 CB_KEY = os.environ.get("CODEBUDDY_API_KEY", "")
 PORT = int(os.environ.get("PORT", "8741"))
 HOST = os.environ.get("HOST", "127.0.0.1")
-DB_PATH = os.path.join(ROOT, "timetrader.db")
+# 测试可通过 TT_DB 指定独立数据库，避免碰真实用户数据
+DB_PATH = os.environ.get("TT_DB", os.path.join(ROOT, "timetrader.db"))
 
 _db_lock = threading.Lock()
 _sessions = {}          # token -> user_id（内存会话；重启后需重新登录）
