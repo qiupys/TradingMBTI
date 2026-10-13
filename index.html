@@ -234,8 +234,14 @@
   .quiz-foot .hint { color: var(--ink-faint); font-size: 12px; margin-left: auto; }
 
   /* ---------- 操盘 ---------- */
-  .game-grid { display: grid; grid-template-columns: 1fr 348px; gap: 16px; align-items: start; position: relative; }
+  .game-grid { display: grid; grid-template-columns: 1fr 348px; gap: 16px; align-items: stretch; position: relative; }
   @media (max-width: 900px) { .game-grid { grid-template-columns: 1fr; } }
+  /* 左列：图表卡片固定 + 资讯卡片 flex 撑满，保证与右列底边对齐 */
+  .game-left { display: flex; flex-direction: column; min-width: 0; }
+  .game-left .news-wrap { flex: 1; display: flex; }
+  .game-left .news-panel { flex: 1; display: flex; flex-direction: column; }
+  /* 右列：操盘卡片 flex 纵向布局，日志区吃掉剩余高度 → 两列底边永远对齐 */
+  .game-right { display: flex; flex-direction: column; }
   .panel { background: var(--panel); border-radius: var(--radius); box-shadow: var(--card-shadow); }
   .seg-bar { padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
   .seg-bar .seg-num { color: var(--ink-dim); font-size: 13px; font-weight: 600; }
@@ -267,7 +273,7 @@
   .news-panel h4 span:last-child { color: var(--ink-faint); font-weight: 400; }
   .news-flash { background: var(--tint-fill); color: var(--tint); padding: 11px 14px; border-radius: var(--radius-sm);
     font-size: 13px; margin-bottom: 12px; animation: fadein .4s var(--ease); }
-  .news-list { max-height: 268px; overflow-y: auto; }
+  .news-list { max-height: 268px; min-height: 268px; overflow-y: auto; }
   .news-item { font-size: 13px; color: var(--ink-dim); padding: 9px 0; border-bottom: 1px solid var(--line); line-height: 1.55; }
   .news-item:last-child { border-bottom: none; }
   .news-item b { color: var(--ink-faint); font-weight: 500; margin-right: 8px; font-size: 12px; }
@@ -301,7 +307,7 @@
   .btn.sell:hover:not(:disabled) { background: var(--down-h); }
   .btn.exit { background: var(--fill-2); color: var(--ink-dim); }
   .btn.exit:hover:not(:disabled) { background: var(--fill); }
-  .log { padding: 0 20px 20px; max-height: 128px; overflow-y: auto; }
+  .log { padding: 0 20px 20px; flex: 1 1 auto; min-height: 96px; overflow-y: auto; }
   .log .li { font-size: 12px; color: var(--ink-faint); padding: 3px 0; }
 
   /* ---------- 浮层（结算 / 历史战绩） ---------- */
@@ -399,6 +405,18 @@
   .rc-name { font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
   .rc-meta { color: var(--ink-faint); font-size: 11px; }
   .rc-story { margin-left: auto; color: var(--ink-dim); font-size: 12px; }
+  /* ---------- 十局总览表（总报告，默认折叠详情） ---------- */
+  .rounds-sum { background: var(--panel); border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden; }
+  .rrow { display: grid; grid-template-columns: 76px 1fr 100px 100px 84px; gap: 10px; align-items: center;
+          padding: 11px 18px; font-size: 13px; border-bottom: 1px solid var(--line); }
+  .rrow:last-child { border-bottom: none; }
+  .rrow.head { font-size: 11px; color: var(--ink-faint); padding: 12px 18px 9px; background: var(--fill-2); }
+  .rrow .rr-no { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  .rrow .rr-name { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rrow .rr-name i { font-style: normal; font-weight: 400; font-size: 11px; color: var(--ink-faint); margin-left: 8px; }
+  .rrow .rr-v, .rrow .rr-ops { text-align: right; font-variant-numeric: tabular-nums; }
+  .rrow .rr-ops { color: var(--ink-faint); font-size: 12px; }
+  @media (max-width: 760px) { .rrow { grid-template-columns: 60px 1fr 84px 84px 64px; gap: 6px; padding: 10px 14px; font-size: 12px; } }
   .rc-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 16px 0 4px; }
   @media (max-width: 760px) { .rc-grid { grid-template-columns: repeat(3, 1fr); } }
   .rc-grid i { display: block; font-style: normal; font-size: 11px; color: var(--ink-faint); }
@@ -474,7 +492,9 @@
     .kbd-hint { padding: 0 16px 12px; font-size: 11px; }
     .actions { padding: 2px 16px 14px; gap: 8px; }
     .news-panel { padding: 14px 16px; }
-    .news-list { max-height: 200px; }
+    .news-list { max-height: 200px; min-height: 0; }
+    /* 单列布局下两列各自自然高度，日志恢复固定上限防撑高页面 */
+    .log { max-height: 160px; flex: 0 0 auto; }
     .quote-bar { padding: 12px 16px 10px; }
     .quote-bar .nm { font-size: 15px; }
     .seg-bar { padding: 11px 16px; gap: 6px 10px; flex-wrap: wrap; }
@@ -619,7 +639,7 @@
   <!-- 操盘 -->
   <section id="screen-game" class="screen">
     <div class="game-grid">
-      <div>
+      <div class="game-left">
         <div class="panel">
           <div class="seg-bar">
             <span class="seg-num" id="segNum">第 1 / 10 局</span>
@@ -635,7 +655,7 @@
           </div>
           <canvas id="chart" height="380"></canvas>
         </div>
-        <div class="panel" style="margin-top:16px">
+        <div class="panel news-wrap" style="margin-top:16px">
           <div class="news-panel">
             <h4><span>历史资讯</span><span>还原自公开报道</span></h4>
             <div class="news-flash" id="newsFlash" hidden></div>
@@ -643,7 +663,7 @@
           </div>
         </div>
       </div>
-      <div class="panel">
+      <div class="panel game-right">
         <div class="acct">
           <div class="acct-head">
             <span class="label">总资产</span>
@@ -1661,8 +1681,8 @@ function showReport() {
     <div class="stat"><div class="k">最大回撤</div><div class="v">${(mdd*100).toFixed(1)}%</div><div class="d">全程资产曲线峰谷</div></div>
     <div class="stat"><div class="k">操作次数</div><div class="v">${userT.length}</div><div class="d">十局平均 ${(userT.length/ROUNDS).toFixed(1)} 次/局</div></div>`;
 
-  /* ---- 逐段可计算复盘：每局交易次数、期初期末资金、收益 vs 躺平、超额、行为标记 ---- */
-  $("rp-rounds").innerHTML = G.rounds.map(rd => {
+  /* ---- 逐段可计算复盘：默认紧凑总览（一局一行），详情默认折叠避免十张大卡把页面撑到 2000px+ ---- */
+  const cardsHtml = G.rounds.map(rd => {
     const sc = G.deck[rd.r];
     const ops = rd.trades.filter(t => !t.forced);
     const nBuy = ops.filter(t => t.action.includes("买入") || t.action.includes("加仓")).length;
@@ -1686,6 +1706,30 @@ function showReport() {
       <div class="rc-flags">${roundFlags(sc, rd.trades).map(f => `<span class="flag ${f[0]}">${f[1]}</span>`).join("")}</div>
     </div>`;
   }).join("");
+  const sumRows = G.rounds.map(rd => {
+    const sc = G.deck[rd.r];
+    const ops = rd.trades.filter(t => !t.forced);
+    const excess = (rd.ret - rd.benchRet) * 100;
+    return `<div class="rrow" data-r="${rd.r}">
+      <span class="rr-no">第 ${rd.r + 1} 局</span>
+      <span class="rr-name">${sc.name}<i>${sc.vol}</i></span>
+      <span class="rr-v ${cls(rd.ret)}">${fmtP(rd.ret * 100)}</span>
+      <span class="rr-v ${cls(excess)}">${(excess >= 0 ? "+" : "") + excess.toFixed(1)} pp</span>
+      <span class="rr-ops">${ops.length === 0 ? "观望" : ops.length + " 次"}</span>
+    </div>`;
+  }).join("");
+  $("rp-rounds").innerHTML = `
+    <div class="rounds-sum">
+      <div class="rrow head"><span>局</span><span>标的</span><span>本局收益</span><span>vs 躺平</span><span>操作</span></div>
+      ${sumRows}
+    </div>
+    <div class="hero-actions" style="margin:12px 0 2px"><button class="btn" id="btnRoundDetail">展开逐局复盘详情 ▾</button></div>
+    <div id="roundsDetail" hidden>${cardsHtml}</div>`;
+  $("btnRoundDetail").onclick = () => {
+    const d = $("roundsDetail");
+    d.hidden = !d.hidden;
+    $("btnRoundDetail").textContent = d.hidden ? "展开逐局复盘详情 ▾" : "收起逐局复盘详情 ▴";
+  };
 
   const F = [];
   if (chase.length) F.push(["bad", `追高买入 ×${chase.length}`]);
