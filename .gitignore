@@ -8,3 +8,6 @@ tests/.tmp/
 tests/.smoke.db
 # WorkBuddy 工作区数据
 .workbuddy/
+
+# WorkBuddy 应用标记
+*.genie
