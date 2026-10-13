@@ -1,0 +1,2116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>K线时光机 · 韭菜体检中心</title>
+<meta name="description" content="回到十段真实历史行情，每局一只真实标的。你只管操作，AI 告诉你情绪值多少钱，并给你一个炒股 MBTI。" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230071e3'/%3E%3Cpath d='M18 14v6M18 44v6M14 20h8v24h-8z' fill='%23fff'/%3E%3Cpath d='M32 10v8M32 38v6M28 18h8v20h-8z' fill='%23ffd60a'/%3E%3Cpath d='M46 22v4M46 44v8M42 26h8v18h-8z' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+  /* ==========================================================================
+     K 线时光机 · 设计系统（Apple / iOS 风格 · 日/夜双主题）
+     · 日间：iOS 分组背景 #f2f2f7 + 纯白卡片 + 细腻投影；夜间：纯黑 + 两级灰面板
+     · 着色：单一 tint（日 #007aff / 夜 #0a84ff）；涨红跌绿为 iOS 系统语义色
+     · 文字：iOS label 三级层级；数字统一 tabular-nums
+     · 间距：卡片内边距统一 20–24px 阶梯，区块间距 12/16/24 阶梯
+     ========================================================================== */
+  :root {
+    color-scheme: light;
+    /* 表面 */
+    --bg: #f5f5f7;
+    --panel: #ffffff;
+    --panel2: #ffffff;
+    --line: rgba(60,60,67,.12);
+    /* 文字层级 */
+    --ink: #1d1d1f;
+    --ink-dim: rgba(60,60,67,.62);
+    --ink-faint: rgba(60,60,67,.34);
+    /* 语义色（iOS 系统色；涨红跌绿为中国市场惯例） */
+    --up: #ff3b30;
+    --down: #34c759;
+    --tint: #0071e3;
+    --tint-h: #0077ed;
+    --up-h: #e6362b;
+    --down-h: #2aa14c;
+    --gold: #b45309;
+    /* 填充 */
+    --fill: rgba(120,120,128,.16);
+    --fill-2: rgba(120,120,128,.10);
+    --fill-h: rgba(120,120,128,.20);
+    --tint-fill: rgba(0,113,227,.1);
+    --up-fill: rgba(255,59,48,.12);
+    --up-fill-h: rgba(255,59,48,.2);
+    --down-fill: rgba(52,199,89,.13);
+    --down-fill-h: rgba(52,199,89,.22);
+    /* 资讯标签（中性） */
+    --tag-n-bg: rgba(0,0,0,.045);
+    /* 投影 / 遮罩 */
+    --card-shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
+    --pop-shadow: 0 30px 90px rgba(0,0,0,.28), 0 4px 16px rgba(0,0,0,.1);
+    --tab-shadow: 0 2px 8px rgba(0,0,0,.12);
+    --scrim: rgba(20,20,24,.4);
+    --scroll-thumb: rgba(0,0,0,.2);
+    --sel: rgba(0,113,227,.25);
+    /* 形状与动效 */
+    --radius: 18px;
+    --radius-sm: 12px;
+    --ease: cubic-bezier(.32,.72,0,1);
+    --mono: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #000;
+    --panel: #1c1c1e;
+    --panel2: #2c2c2e;
+    --line: rgba(255,255,255,.08);
+    --ink: #fff;
+    --ink-dim: rgba(235,235,245,.62);
+    --ink-faint: rgba(235,235,245,.36);
+    --up: #ff453a;
+    --down: #30d158;
+    --tint: #0a84ff;
+    --tint-h: #2492ff;
+    --up-h: #ff6961;
+    --down-h: #5fe08a;
+    --gold: #ffd60a;
+    --fill: rgba(120,120,128,.24);
+    --fill-2: rgba(120,120,128,.16);
+    --fill-h: rgba(120,120,128,.32);
+    --tint-fill: rgba(10,132,255,.16);
+    --up-fill: rgba(255,69,58,.16);
+    --up-fill-h: rgba(255,69,58,.26);
+    --down-fill: rgba(48,209,88,.16);
+    --down-fill-h: rgba(48,209,88,.26);
+    --tag-n-bg: rgba(255,255,255,.05);
+    --card-shadow: none;
+    --pop-shadow: 0 24px 80px rgba(0,0,0,.6);
+    --tab-shadow: 0 2px 8px rgba(0,0,0,.28);
+    --scrim: rgba(0,0,0,.6);
+    --scroll-thumb: rgba(255,255,255,.14);
+    --sel: rgba(10,132,255,.35);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    line-height: 1.47; letter-spacing: -.01em;
+    transition: background .3s var(--ease), color .3s var(--ease);
+  }
+  button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  ::selection { background: var(--sel); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
+  /* 页面顶端一抹品牌渐变（富途/Robinhood 式氛围光），内容区仍保持纯净 */
+  body::before { content: ""; position: fixed; inset: 0 0 auto 0; height: 320px; pointer-events: none; z-index: -1;
+    background: radial-gradient(120% 100% at 50% 0%, var(--tint-fill) 0%, transparent 70%); }
+
+  /* 数字统一等宽字形——苹果用同一套字体的 tnum，而不是另换等宽字体 */
+  .acct .big, .acct .ret, .acct-grid .v, .quote-bar .dt, .quote-bar .px, .quote-bar .pc,
+  .seg-bar .seg-num, .seg-bar .rest, .qprog-meta, .stat .v, .settle-grid .v, .rnd-row .v,
+  .rnd-row .b, .rc-no, .rc-grid b, .rc-grid u, .hist-item .t, .hist-item .sc, .hist-item .ret,
+  .hist-item .mb, .hdd-badge, .self-preview .code, .mbti-badge .code, .log .li, .news-item b,
+  .pos-badge, .news-flash, .auth-msg { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+  /* ---------- 页头 ---------- */
+  header { padding: 34px 0 0; }
+  .brand { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .brand .logo { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,113,227,.35); }
+  .brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
+  .brand .sub { color: var(--ink-faint); font-size: 13px; font-weight: 500; }
+  .tagline { color: var(--ink-faint); font-size: 12px; margin: 6px 0 0; }
+  .screen { display: none; padding: 34px 0 72px; }
+  .screen.on { display: block; animation: fadein .45s var(--ease); }
+  @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* ---------- 日/夜主题切换 ---------- */
+  .theme-btn { width: 34px; height: 34px; border: none; border-radius: 50%; background: var(--fill-2);
+    color: var(--ink-dim); display: inline-flex; align-items: center; justify-content: center; margin-left: auto;
+    transition: background .2s var(--ease), transform .2s var(--ease), color .2s var(--ease); }
+  .theme-btn:hover { background: var(--fill); color: var(--ink); }
+  .theme-btn:active { transform: scale(.9); }
+  .theme-btn svg { width: 17px; height: 17px; display: block; }
+  .theme-btn .ico-moon { display: none; }
+  :root[data-theme="dark"] .theme-btn .ico-sun { display: none; }
+  :root[data-theme="dark"] .theme-btn .ico-moon { display: block; }
+
+  /* ---------- 通用块 ---------- */
+  .hero { background: var(--panel); border-radius: var(--radius); padding: 42px 44px; max-width: 720px; box-shadow: var(--card-shadow); }
+  #screen-auth .hero { max-width: 540px; }
+  .hero .sec { color: var(--tint); font-size: 12px; font-weight: 600; letter-spacing: .01em; }
+  .hero h2 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin: 12px 0 10px; }
+  .hero p { color: var(--ink-dim); font-size: 15px; margin: 10px 0; }
+  .hero .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+  .pill { font-size: 12px; padding: 6px 13px; border-radius: 999px; background: var(--fill-2); color: var(--ink-dim); }
+  .pill.gold { background: var(--tint-fill); color: var(--tint); }
+  .hero-actions { display: flex; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+  .fine { color: var(--ink-faint); font-size: 12px; line-height: 1.65; }
+
+  /* ---- 渐变 Hero（品牌蓝 · 参考 Robinhood/富途行情站首屏）---- */
+  .hero-g { position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0a84ff 0%, #0060df 52%, #0044a8 100%); color: #fff; }
+  :root[data-theme="dark"] .hero-g { background: linear-gradient(135deg, #0a6ee0 0%, #064ea8 55%, #043273 100%); }
+  .hero-g::after { content: ""; position: absolute; right: -20px; bottom: -12px; width: 380px; height: 200px;
+    pointer-events: none; opacity: .5;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 200'%3E%3Cpath d='M0 170 L40 150 L80 158 L120 120 L160 132 L200 96 L240 110 L280 70 L320 84 L380 30' fill='none' stroke='rgba(255,255,255,.35)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M0 170 L40 150 L80 158 L120 120 L160 132 L200 96 L240 110 L280 70 L320 84 L380 30 L380 200 L0 200 Z' fill='rgba(255,255,255,.06)'/%3E%3C/svg%3E") no-repeat right bottom / contain; }
+  .hero-g .sec { color: rgba(255,255,255,.72); }
+  .hero-g h2 { color: #fff; }
+  .hero-g p { color: rgba(255,255,255,.85); }
+  .hero-g .pill { background: rgba(255,255,255,.16); color: #fff; }
+  .hero-g .pill.gold { background: rgba(255,214,10,.22); color: #ffd60a; }
+  .hero-g .fine { color: rgba(255,255,255,.55); }
+  .hero-g .btn { background: rgba(255,255,255,.16); color: #fff; }
+  .hero-g .btn:hover:not(:disabled) { background: rgba(255,255,255,.26); }
+  .hero-g .btn.primary { background: #fff; color: #0055d4; }
+  .hero-g .btn.primary:hover:not(:disabled) { background: #eaf3ff; }
+  /* 渐变底上的登录控件 */
+  .hero-g .auth-tabs { background: rgba(0,0,0,.22); }
+  .hero-g .auth-tab { color: rgba(255,255,255,.72); }
+  .hero-g .auth-tab.on { background: #fff; color: #0055d4; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+  .hero-g .auth-form input { background: rgba(255,255,255,.13); color: #fff; border-color: transparent; }
+  .hero-g .auth-form input::placeholder { color: rgba(255,255,255,.5); }
+  .hero-g .auth-form input:focus { border-color: rgba(255,255,255,.65); background: rgba(255,255,255,.2); }
+  .hero-g .auth-msg { color: #ffd6d2; }
+  .hero-g .auth-msg.ok { color: #b8f5c9; }
+  .hero-g .auth-foot { color: rgba(255,255,255,.6); }
+  .hero-g .auth-foot b { color: rgba(255,255,255,.85); }
+  /* 渐变底上的数据小徽章 */
+  .stat-chips { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0 2px; }
+  .stat-chip { background: rgba(255,255,255,.13); border-radius: 14px; padding: 12px 18px; min-width: 96px; }
+  .stat-chip b { display: block; font-size: 21px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .stat-chip span { font-size: 11px; color: rgba(255,255,255,.65); }
+
+  /* ---------- 按钮（iOS：填充式，不用描边） ---------- */
+  .btn { border: none; background: var(--fill); color: var(--ink); min-height: 44px; padding: 0 22px; border-radius: 12px;
+    font-size: 15px; font-weight: 600; letter-spacing: -.01em; transition: opacity .2s var(--ease), transform .2s var(--ease), background .2s var(--ease);
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+  .btn svg { flex-shrink: 0; }
+  .btn:hover:not(:disabled) { background: var(--fill-h); }
+  .btn:active:not(:disabled) { transform: scale(.975); opacity: .86; }
+  .btn:disabled { opacity: .32; cursor: not-allowed; transform: none; }
+  .btn.primary { background: var(--tint); color: #fff; }
+  .btn.primary:hover:not(:disabled) { background: var(--tint-h); }
+  .btn.small { min-height: 32px; padding: 0 14px; font-size: 13px; border-radius: 10px; }
+  .note { color: var(--ink-faint); font-size: 12px; margin-top: 20px; line-height: 1.65; }
+
+  /* ---------- 玩法说明 ---------- */
+  .rules { max-width: 720px; }
+  .rules h3 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 18px; }
+  .rule-list { display: grid; gap: 10px; }
+  .rule { background: var(--panel); border-radius: var(--radius-sm); padding: 17px 22px; font-size: 15px;
+    color: var(--ink-dim); display: flex; gap: 16px; line-height: 1.6; box-shadow: var(--card-shadow); }
+  .rule .no { color: var(--ink-faint); font-weight: 600; font-size: 13px; padding-top: 2px; }
+  .rule b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- 自测问卷 ---------- */
+  .quiz { max-width: 620px; margin: 0 auto; }
+  .quiz h3 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 6px; }
+  .quiz .q-dim { color: var(--ink-faint); font-size: 12px; font-weight: 600; }
+  .qprog { height: 4px; background: var(--fill-2); border-radius: 2px; margin: 26px 0 10px; overflow: hidden; }
+  .qprog-bar { height: 100%; width: 0; background: var(--tint); border-radius: 2px; transition: width .35s var(--ease); }
+  .qprog-meta { display: flex; justify-content: space-between; color: var(--ink-faint); font-size: 12px; margin-bottom: 18px; }
+  .qcard { background: var(--panel); border-radius: var(--radius); padding: 32px 32px 28px; animation: fadein .35s var(--ease); box-shadow: var(--card-shadow); }
+  .qcard .q-title { font-size: 17px; font-weight: 600; letter-spacing: -.01em; margin: 8px 0 24px; line-height: 1.45; }
+  .self-preview { display: flex; align-items: center; gap: 20px; margin: 18px 0 6px; flex-wrap: wrap; }
+  .self-preview .code { font-size: 34px; font-weight: 700; color: var(--tint); letter-spacing: .02em; }
+  .self-preview .dim { color: var(--ink-dim); font-size: 13px; }
+  .opt { display: block; width: 100%; text-align: left; background: var(--fill-2); border: none;
+    color: var(--ink); border-radius: var(--radius-sm); padding: 15px 18px; font-size: 15px; margin-bottom: 10px;
+    transition: background .2s var(--ease), transform .2s var(--ease); }
+  .opt:hover { background: var(--fill); }
+  .opt:active { transform: scale(.99); }
+  .opt.picked, .opt.sel { background: var(--tint-fill); color: var(--tint); font-weight: 600; }
+  /* 自测完成页：完整代号（四维全答）或中性维度标签 */
+  .self-code { font-size: 34px; font-weight: 700; color: var(--tint); letter-spacing: .03em; margin: 20px 0 6px; }
+  .dim-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 4px; }
+  .dim-chip { display: inline-flex; align-items: baseline; gap: 7px; background: var(--fill-2); color: var(--ink-dim);
+    border-radius: 999px; padding: 8px 15px; font-size: 13px; }
+  .dim-chip i { font-style: normal; color: var(--ink-faint); font-size: 11px; }
+  .dim-chip.on { background: var(--tint-fill); color: var(--tint); font-weight: 600; }
+  .dim-chip.on i { color: var(--tint); opacity: .7; }
+  .quiz-foot { display: flex; align-items: center; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+  .quiz-foot .hint { color: var(--ink-faint); font-size: 12px; margin-left: auto; }
+
+  /* ---------- 操盘 ---------- */
+  .game-grid { display: grid; grid-template-columns: 1fr 348px; gap: 16px; align-items: start; position: relative; }
+  @media (max-width: 900px) { .game-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border-radius: var(--radius); box-shadow: var(--card-shadow); }
+  .seg-bar { padding: 14px 20px; display: flex; align-items: center; gap: 12px; }
+  .seg-bar .seg-num { color: var(--ink-dim); font-size: 13px; font-weight: 600; }
+  .seg-track { flex: 1; display: flex; gap: 4px; }
+  .seg-dot { flex: 1; height: 4px; border-radius: 2px; background: var(--fill-2); transition: background .3s var(--ease); }
+  .seg-dot.cur { background: var(--tint); }
+  .seg-dot.done { background: var(--tint); opacity: .4; }
+  .seg-bar .rest { font-size: 12px; color: var(--ink-faint); }
+  .ver { color: var(--ink-faint); font-size: 11px; }
+  #btnQuitGame { margin-left: auto; background: transparent; color: var(--ink-faint); min-height: 0; padding: 6px 10px; font-size: 12px; }
+  #btnQuitGame:hover:not(:disabled) { background: var(--fill-2); color: var(--ink-dim); }
+  /* 行情头：专业行情站式大字报价 + 涨跌徽章 */
+  .quote-bar { padding: 16px 20px 14px; display: flex; align-items: baseline; gap: 12px 16px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); }
+  .quote-bar .nm { font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+  .quote-bar .dt { color: var(--ink-faint); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .quote-bar .px { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin-left: auto;
+    font-variant-numeric: tabular-nums; }
+  .quote-bar .pc { font-size: 13px; font-weight: 700; padding: 3px 10px; border-radius: 8px;
+    font-variant-numeric: tabular-nums; }
+  .quote-bar .pc.up { color: var(--up); background: var(--up-fill); }
+  .quote-bar .pc.down { color: var(--down); background: var(--down-fill); }
+  #chart { width: 100%; display: block; border-radius: 0 0 var(--radius) var(--radius); cursor: pointer; }
+  /* 成交量图例 */
+  .vol-legend { font-size: 10px; color: var(--ink-faint); padding: 0 20px 6px; text-align: right; }
+  .news-panel { padding: 20px 22px; }
+  .news-panel h4 { font-size: 13px; color: var(--ink-dim); font-weight: 600; margin-bottom: 12px;
+    display: flex; justify-content: space-between; }
+  .news-panel h4 span:last-child { color: var(--ink-faint); font-weight: 400; }
+  .news-flash { background: var(--tint-fill); color: var(--tint); padding: 11px 14px; border-radius: var(--radius-sm);
+    font-size: 13px; margin-bottom: 12px; animation: fadein .4s var(--ease); }
+  .news-list { max-height: 268px; overflow-y: auto; }
+  .news-item { font-size: 13px; color: var(--ink-dim); padding: 9px 0; border-bottom: 1px solid var(--line); line-height: 1.55; }
+  .news-item:last-child { border-bottom: none; }
+  .news-item b { color: var(--ink-faint); font-weight: 500; margin-right: 8px; font-size: 12px; }
+  .ntag { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 6px; margin-right: 7px; vertical-align: 1px; font-weight: 600; }
+  .nt-q, .nt-v, .nt-i { color: var(--ink-dim); background: var(--fill-2); }
+  .nt-n { color: var(--ink-faint); background: var(--tag-n-bg); }
+
+  .acct { padding: 22px 22px 18px; }
+  .acct-head { display: flex; align-items: center; justify-content: space-between; }
+  .acct .label { font-size: 13px; color: var(--ink-dim); }
+  .pos-badge { font-size: 11px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: var(--fill-2); color: var(--ink-faint); }
+  .pos-badge.lv1 { background: var(--tint-fill); color: var(--tint); }
+  .pos-badge.lv2 { background: var(--up-fill); color: var(--up); }
+  .acct .big { font-size: 34px; font-weight: 600; letter-spacing: -.02em; margin: 5px 0 4px; }
+  .acct .ret { font-size: 13px; font-weight: 600; }
+  .acct-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-top: 16px; font-size: 13px;
+    padding-top: 16px; border-top: 1px solid var(--line); }
+  .acct-grid .k { color: var(--ink-faint); }
+  .acct-grid .v { text-align: right; }
+  .up { color: var(--up); } .down { color: var(--down); }
+  .nav-row { display: flex; gap: 10px; padding: 0 20px 14px; }
+  .nav-row .btn { flex: 1; }
+  .kbd-hint { padding: 0 20px 16px; color: var(--ink-faint); font-size: 11px; line-height: 1.6; }
+  .actions { padding: 6px 20px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .actions .cap { grid-column: span 2; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; padding: 0 2px 2px; }
+  .actions .cap .cap-buy { color: var(--up); }
+  .actions .cap .cap-sell { color: var(--down); }
+  .btn.buy { background: var(--up); color: #fff; }
+  .btn.buy:hover:not(:disabled) { background: var(--up-h); }
+  .btn.sell { background: var(--down); color: #fff; }
+  .btn.sell:hover:not(:disabled) { background: var(--down-h); }
+  .btn.exit { background: var(--fill-2); color: var(--ink-dim); }
+  .btn.exit:hover:not(:disabled) { background: var(--fill); }
+  .log { padding: 0 20px 20px; max-height: 128px; overflow-y: auto; }
+  .log .li { font-size: 12px; color: var(--ink-faint); padding: 3px 0; }
+
+  /* ---------- 浮层（结算 / 历史战绩） ---------- */
+  #settle, #histModal { position: fixed; inset: 0; background: var(--scrim);
+    backdrop-filter: saturate(160%) blur(20px); -webkit-backdrop-filter: saturate(160%) blur(20px);
+    display: none; align-items: center; justify-content: center; z-index: 50; }
+  #histModal { z-index: 60; }
+  #settle.on, #histModal.on { display: flex; }
+  .settle-card { width: min(540px, calc(100vw - 36px)); max-height: 86vh; overflow-y: auto; background: var(--panel2);
+    border-radius: 24px; padding: 34px 34px 30px; box-shadow: var(--pop-shadow); }
+  .settle-card .tag { color: var(--ink-faint); font-size: 12px; font-weight: 600; }
+  .settle-card h3 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 10px 0 4px; }
+  .settle-card .story { color: var(--tint); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .settle-card .meta { color: var(--ink-faint); font-size: 12px; margin-bottom: 20px; }
+  .settle-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 18px 0; }
+  .settle-grid .cell { background: var(--fill-2); border-radius: var(--radius-sm); padding: 14px 15px; }
+  .settle-grid .k { font-size: 11px; color: var(--ink-faint); }
+  .settle-grid .v { font-size: 20px; font-weight: 600; letter-spacing: -.02em; margin-top: 4px; }
+  .settle-flags { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0 18px; }
+  .settle-flags .flag { font-size: 11px; padding: 5px 11px; border-radius: 999px; background: var(--fill-2); color: var(--ink-dim); }
+  .settle-flags .flag.bad { background: var(--up-fill); color: var(--up); }
+  .settle-flags .flag.good { background: var(--down-fill); color: var(--down); }
+
+  /* ---------- 总报告 ---------- */
+  .report { display: grid; grid-template-columns: 1fr 372px; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .report { grid-template-columns: 1fr; } }
+  .reveal { color: var(--ink-dim); font-size: 15px; margin-bottom: 6px; }
+  .reveal b { color: var(--ink); font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 14px; margin: 20px 0; }
+  .report .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  #screen-histdetail .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat { background: var(--panel); border-radius: var(--radius); padding: 18px 20px 16px; box-shadow: var(--card-shadow); }
+  .stat .k { font-size: 12px; color: var(--ink-faint); }
+  .stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 6px; }
+  .stat .d { font-size: 11px; color: var(--ink-faint); margin-top: 5px; }
+  .flags { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  .flag { font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--fill-2); color: var(--ink-dim); }
+  .flag.bad { background: var(--up-fill); color: var(--up); }
+  .flag.good { background: var(--down-fill); color: var(--down); }
+  .tier-ladder { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 18px; align-items: center; }
+  .tier-ladder .lab { font-size: 12px; color: var(--ink-faint); margin-right: 4px; }
+  .tier-ladder .tl { font-size: 12px; padding: 6px 14px; border-radius: 999px; background: var(--fill-2); color: var(--ink-faint); transition: .2s var(--ease); }
+  .tier-ladder .tl.cur { background: var(--tint); color: #fff; font-weight: 600; }
+  .rnd-table { background: var(--panel); border-radius: var(--radius); padding: 16px 20px; margin: 8px 0; box-shadow: var(--card-shadow); }
+  .rnd-row { display: grid; grid-template-columns: 150px 1fr 90px 110px; gap: 8px; font-size: 13px; padding: 8px 0;
+    border-bottom: 1px solid var(--line); align-items: baseline; }
+  .rnd-row:last-child { border-bottom: none; }
+  .rnd-row .n { color: var(--ink); font-weight: 600; }
+  .rnd-row .s { color: var(--ink-faint); font-size: 12px; }
+  .rnd-row .v, .rnd-row .b { text-align: right; }
+  .rnd-row .b { color: var(--ink-faint); }
+  .ai-card { background: var(--panel); border-radius: var(--radius); padding: 26px 28px 24px; margin-top: 12px; box-shadow: var(--card-shadow); }
+  .ai-card h4 { font-size: 15px; color: var(--ink); font-weight: 600; letter-spacing: -.01em; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px; }
+  .ai-card h4 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tint); animation: pulse 1.8s var(--ease) infinite; flex-shrink: 0; }
+  @keyframes pulse { 50% { opacity: .25; } }
+  #ai-text { font-size: 15px; color: var(--ink-dim); white-space: pre-wrap; min-height: 120px; line-height: 1.65; }
+  #ai-text .caret, #mbti-body .caret { display: inline-block; width: 2px; height: 17px; background: var(--tint); vertical-align: text-bottom; animation: blink 1.1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .mbti-badge { display: flex; align-items: center; gap: 16px; margin: 12px 0 20px; }
+  .mbti-badge .code { font-size: 34px; font-weight: 700; color: var(--tint); letter-spacing: .02em; }
+  .mbti-badge .name { font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
+  .mbti-badge .src { font-size: 11px; color: var(--ink-faint); }
+  .mbti-sec { font-size: 15px; color: var(--ink-dim); margin: 14px 0; line-height: 1.65; }
+  .mbti-sec b { display: block; color: var(--ink-faint); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .mbti-sec ul { margin: 4px 0 0 20px; }
+  .report-actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+  #cert { width: 100%; border-radius: var(--radius); display: block; box-shadow: var(--card-shadow); }
+  .cert-cap { color: var(--ink-faint); font-size: 12px; margin: 12px 0 2px; }
+
+  /* ---------- 登录 / 注册 ---------- */
+  .auth-tabs { display: flex; gap: 3px; margin-top: 24px; background: var(--fill-2); border-radius: 12px; padding: 3px; max-width: 380px; }
+  .auth-tab { flex: 1; padding: 9px 0; border: none; background: transparent; color: var(--ink-dim); border-radius: 9px;
+    font-size: 13px; font-weight: 600; transition: .22s var(--ease); }
+  .auth-tab.on { background: var(--panel2); color: var(--ink); font-weight: 600; box-shadow: var(--tab-shadow); }
+  .auth-form { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; max-width: 380px; }
+  .auth-form input { background: var(--fill-2); border: 1.5px solid transparent; border-radius: 12px; color: var(--ink);
+    padding: 12px 15px; min-height: 44px; font-size: 15px; font-family: inherit; outline: none; transition: .2s var(--ease); }
+  .auth-form input::placeholder { color: var(--ink-faint); }
+  .auth-form input:focus { border-color: var(--tint); background: var(--fill); }
+  .auth-msg { min-height: 18px; font-size: 12px; color: var(--up); }
+  .auth-msg.ok { color: var(--down); }
+  .auth-foot { max-width: 380px; color: var(--ink-faint); font-size: 12px; line-height: 1.65; margin-top: 18px; }
+  .auth-foot b { color: var(--ink-dim); font-weight: 500; }
+  .user-chip { margin-left: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-dim); }
+  .user-chip[hidden] { display: none; }   /* display:flex 会覆盖 hidden 属性，必须显式抵消 */
+  [hidden] { display: none !important; }  /* 全局兜底：任何显式 display 都不允许压过 hidden */
+  .user-chip b { color: var(--ink); font-weight: 600; }
+  .rp-save { font-size: 12px; color: var(--ink-faint); margin: 2px 0 8px; min-height: 16px; }
+
+  /* ---------- 逐段复盘卡片 ---------- */
+  .round-card { background: var(--panel); border-radius: var(--radius); padding: 20px 22px; margin: 12px 0; box-shadow: var(--card-shadow); }
+  .rc-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rc-no { color: var(--ink-faint); font-weight: 600; font-size: 12px; white-space: nowrap; }
+  .rc-name { font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
+  .rc-meta { color: var(--ink-faint); font-size: 11px; }
+  .rc-story { margin-left: auto; color: var(--ink-dim); font-size: 12px; }
+  .rc-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 16px 0 4px; }
+  @media (max-width: 760px) { .rc-grid { grid-template-columns: repeat(3, 1fr); } }
+  .rc-grid i { display: block; font-style: normal; font-size: 11px; color: var(--ink-faint); }
+  .rc-grid b { font-size: 15px; font-weight: 600; display: block; margin-top: 4px; }
+  .rc-grid u { display: block; text-decoration: none; font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+  .rc-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .rc-flags .flag { font-size: 11px; padding: 4px 10px; }
+
+  /* ---------- 历史战绩列表 ---------- */
+  .hist-item { background: var(--fill-2); border-radius: var(--radius-sm); padding: 16px 18px;
+    margin: 10px 0; display: flex; flex-direction: column; gap: 6px; transition: .2s var(--ease); }
+  .hist-item.clickable { cursor: pointer; }
+  .hist-item.clickable:hover { background: var(--fill); }
+  .hist-item.clickable:active { transform: scale(.99); }
+  .hist-row { display: flex; align-items: baseline; gap: 4px 14px; flex-wrap: wrap; min-width: 0; }
+  .hist-item .t { font-size: 12px; color: var(--ink-faint); white-space: nowrap; }
+  .hist-item .tier { color: var(--ink); font-weight: 600; font-size: 15px; white-space: nowrap; }
+  .hist-item .sc { color: var(--tint); font-weight: 600; white-space: nowrap; }
+  .hist-item .ret { font-weight: 600; white-space: nowrap; }
+  .hist-sub { display: flex; align-items: baseline; gap: 4px 14px; flex-wrap: wrap; min-width: 0; }
+  .hist-item .n-ops { font-size: 12px; color: var(--ink-faint); min-width: 0; overflow-wrap:anywhere; }
+  .hist-item .mb { font-size: 12px; color: var(--ink-dim); min-width: 0; overflow-wrap:anywhere; }
+  .hist-item .caret-g { margin-left: auto; color: var(--ink-faint); font-size: 13px; }
+  .hdd-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .hdd-badge { font-size: 12px; padding: 6px 14px; border-radius: 999px; background: var(--fill-2); color: var(--ink-dim); white-space: nowrap; }
+  .hdd-badge.gold { background: var(--tint-fill); color: var(--tint); font-weight: 600; }
+  .hdd-badge.bad { background: var(--up-fill); color: var(--up); }
+  .hdd-badge.good { background: var(--down-fill); color: var(--down); }
+  .hist-detail { margin-top: 6px; padding-top: 14px; border-top: 1px solid var(--line); cursor: default; }
+  .hd-meta { font-size: 12px; color: var(--ink-faint); margin-bottom: 10px; }
+  .hd-rounds { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; margin-bottom: 8px; }
+  .hd-round { display: flex; align-items: center; gap: 10px; font-size: 12px; padding: 3px 0; }
+  .hd-round .hr-n { color: var(--ink-dim); min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hd-round .hr-ret { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .hd-round .hr-bench, .hd-round .hr-ops { color: var(--ink-faint); font-size: 11px; }
+  .hflag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 999px; margin-right: 6px;
+    background: var(--up-fill); color: var(--up); }
+  .hflag.none { background: var(--fill-2); color: var(--ink-faint); }
+
+  /* ---------- 连击反馈 ---------- */
+  .btn.pulse { animation: pulsebtn .6s var(--ease); }
+  @keyframes pulsebtn { 0% { box-shadow: 0 0 0 0 var(--tint-fill); } 100% { box-shadow: 0 0 0 16px rgba(10,132,255,0); } }
+
+  /* 细滚动条（苹果式） */
+  .news-list::-webkit-scrollbar, #histList::-webkit-scrollbar, .settle-card::-webkit-scrollbar, .log::-webkit-scrollbar { width: 8px; }
+  .news-list::-webkit-scrollbar-thumb, #histList::-webkit-scrollbar-thumb, .settle-card::-webkit-scrollbar-thumb, .log::-webkit-scrollbar-thumb {
+    background: var(--scroll-thumb); border-radius: 4px; }
+
+  /* ---------- 窄屏 / 小窗口适配 ---------- */
+  @media (max-width: 900px) {
+    header { padding: 22px 0 0; }
+    .tagline { font-size: 12px; }
+    .hero { padding: 28px 24px; }
+    .hero h2 { font-size: 22px; }
+  }
+  @media (max-width: 700px) {
+    .wrap { padding: 0 16px; }
+    header { padding: 16px 0 0; }
+    .brand h1 { font-size: 17px; }
+    .brand .sub { font-size: 12px; }
+    .screen { padding: 18px 0 56px; }
+    .hero { padding: 22px 18px; border-radius: 16px; }
+    .hero h2 { font-size: 22px; }
+    .hero p { font-size: 13px; }
+    .btn { min-height: 40px; padding: 0 16px; }
+    .rules .rule { font-size: 13px; padding: 14px 16px; }
+    .qcard { padding: 22px 18px 20px; }
+    .qcard .q-title { font-size: 17px; }
+    .acct { padding: 16px 16px 14px; }
+    .acct .big { font-size: 28px; }
+    .acct-grid { font-size: 12px; gap: 7px 12px; }
+    .nav-row { padding: 0 16px 10px; }
+    .kbd-hint { padding: 0 16px 12px; font-size: 11px; }
+    .actions { padding: 2px 16px 14px; gap: 8px; }
+    .news-panel { padding: 14px 16px; }
+    .news-list { max-height: 200px; }
+    .quote-bar { padding: 12px 16px 10px; }
+    .quote-bar .nm { font-size: 15px; }
+    .seg-bar { padding: 11px 16px; gap: 6px 10px; flex-wrap: wrap; }
+    .seg-bar .seg-num, .seg-bar .rest, #btnQuitGame { white-space: nowrap; }
+    #btnQuitGame { font-size: 12px; padding: 4px 8px; }
+    .ver { display: none; }
+    .settle-card { padding: 24px 20px 20px; border-radius: 20px; }
+    .settle-card h3 { font-size: 22px; }
+    .settle-grid { grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+    .settle-grid .v { font-size: 17px; }
+    .settle-grid .cell { padding: 10px 11px; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { padding: 14px 15px; }
+    .stat .v { font-size: 20px; }
+    .rnd-row { grid-template-columns: 110px 1fr 70px 80px; font-size: 12px; }
+    .hd-rounds { grid-template-columns: 1fr; }
+    #histModal .settle-card { width: calc(100vw - 24px) !important; max-height: 88vh; }
+    .auth-tabs, .auth-form, .auth-foot { max-width: none; }
+    .theme-btn { width: 30px; height: 30px; margin-left: auto; }
+    .user-chip { margin-left: 8px; }
+  }
+</style>
+<script>
+/* 主题先行：在首帧渲染前定下 data-theme，避免日/夜闪跳 */
+(function () {
+  var t; try { t = localStorage.getItem("tt_theme"); } catch (e) {}
+  if (t !== "light" && t !== "dark") t = (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+  document.documentElement.dataset.theme = t;
+})();
+</script>
+</head>
+<body>
+<header class="wrap">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="var(--tint)"/><path d="M18 14v6M18 44v6M14 20h8v24h-8z" fill="#fff"/><path d="M32 10v8M32 38v6M28 18h8v20h-8z" fill="#ffd60a"/><path d="M46 22v4M46 44v8M42 26h8v18h-8z" fill="#fff"/></svg>
+    <h1>K线时光机</h1>
+    <span class="sub">韭菜体检中心</span>
+    <div class="user-chip" id="userChip" hidden>
+      <b id="ucName"></b>
+      <button class="btn small" id="btnHistory">历史战绩</button>
+      <button class="btn small" id="btnLogout">退出</button>
+    </div>
+    <button class="theme-btn" id="btnTheme" type="button" title="切换日间 / 夜间模式" aria-label="切换日间 / 夜间模式">
+      <svg class="ico-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><path d="M12 2.6v2.4M12 19v2.4M2.6 12H5M19 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
+    </button>
+  </div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.16</span></div>
+</header>
+
+<main class="wrap">
+  <!-- 登录 / 注册 -->
+  <section id="screen-auth" class="screen">
+    <div class="hero hero-g">
+      <div class="sec">韭菜体检中心 · 用户档案</div>
+      <h2>登录后，你的体检档案永久保留</h2>
+      <p>十局体检成绩、炒股 MBTI、每段行为数据都会存进你的历史战绩，随时回看、对比进步。也可以先以游客身份体验。</p>
+      <div class="auth-tabs">
+        <button class="auth-tab on" id="tabLogin" type="button">登 录</button>
+        <button class="auth-tab" id="tabRegister" type="button">注 册</button>
+      </div>
+      <div class="auth-form">
+        <input id="authUser" maxlength="20" placeholder="用户名（2–20 字符）" autocomplete="username">
+        <input id="authPass" type="password" maxlength="64" placeholder="密码（至少 6 位）" autocomplete="current-password">
+        <input id="authPass2" type="password" maxlength="64" placeholder="再输一遍密码（注册）" autocomplete="new-password" hidden>
+        <div class="auth-msg" id="authMsg"></div>
+      </div>
+      <div class="hero-actions">
+        <button class="btn primary" id="btnAuth">登录</button>
+        <button class="btn" id="btnGuest">游客体验（不保存战绩）</button>
+      </div>
+      <p class="auth-foot">注册即云端保存战绩，换台电脑登录也能查看全部体检报告。</p>
+    </div>
+  </section>
+
+  <!-- 选局入口 -->
+  <section id="screen-select" class="screen">
+    <div class="hero hero-g">
+      <div class="sec">十局制 · 真实历史重演</div>
+      <h2>回到过去，操盘十局</h2>
+      <div class="stat-chips">
+        <div class="stat-chip"><b>10</b><span>局真实行情</span></div>
+        <div class="stat-chip"><b>40</b><span>只真实标的池</span></div>
+        <div class="stat-chip"><b>100万</b><span>本金跨局结转</span></div>
+        <div class="stat-chip"><b>16 型</b><span>炒股 MBTI</span></div>
+      </div>
+      <p>十段互相独立的真实历史行情：可能是不动声色的水电巨头，也可能是 20cm 涨跌停的科创妖股。开局亮明身份，还有当时的资讯帮你判断——但未来的走势，谁也看不见。</p>
+      <div class="pill-row">
+        <span class="pill">低波动 · 红利防御</span>
+        <span class="pill">主板 · 周期与白马</span>
+        <span class="pill gold">创业板 · 20cm</span>
+        <span class="pill gold">科创板 · 星辰大海</span>
+      </div>
+      <p class="fine">100 万本金跨局结转 · 每局窗口结束自动强平结算 · 买入卖出均按当日收盘价成交 · 行情为真实历史数据（定点复权），资讯为公开报道还原</p>
+      <div class="hero-actions">
+        <button class="btn primary" id="btnStart">进入游戏</button>
+        <button class="btn" id="btnHistSelect">查看历史战绩</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 玩法说明 -->
+  <section id="screen-rules" class="screen">
+    <div class="rules">
+      <h3>玩法说明 · 60 秒读完</h3>
+      <div class="rule-list">
+        <div class="rule"><span class="no">01</span><span><b>十局十标的</b>：每一局是一只不同股票的一段真实历史（约 45–64 个交易日）。开局亮明身份，但你依然看不见未来。</span></div>
+        <div class="rule"><span class="no">02</span><span><b>资金结转</b>：初始 100 万，每局盈亏带入下一局。十局打完，账户里剩下的就是你的总成绩。</span></div>
+        <div class="rule"><span class="no">03</span><span><b>仓位规则</b>：仓位只有三档——空仓 / 半仓 / 满仓。空仓可买半仓或满仓；半仓只能加至满仓或清仓；满仓只能卖半或清仓。清仓后可继续观望，也可重新建仓。</span></div>
+        <div class="rule"><span class="no">04</span><span><b>成交价 = 当日收盘价</b>：所有买入、卖出、强制平仓一律按你按键那天的收盘价成交。</span></div>
+        <div class="rule"><span class="no">05</span><span><b>自动结算</b>：本局最后一个交易日收盘后，持仓自动强平并结算——给出本局故事标签、你的收益 vs 满仓躺平，然后进入下一局。</span></div>
+        <div class="rule"><span class="no">06</span><span><b>资讯情报</b>：每局还原约 20–28 条当时的历史资讯——还原报道、行情快报、大V观点、国际视野、场外杂谈混杂其中。它们是唯一的"消息面"，里面既有信号，也有大量噪音。</span></div>
+        <div class="rule"><span class="no">07</span><span><b>终局体检</b>：十局结束，AI 结合"20 道自评 + 十局操作"算出你的炒股 MBTI、认知漂移和体检证书。</span></div>
+        <div class="rule"><span class="no">08</span><span><b>操作方式</b>：空格/点击K线 = 下一日 · <b>B = 买入</b>（空仓双击 B = 满仓买入）· <b>S = 卖出/清仓</b>（满仓双击 S = 清仓）· 回车 = 快进结算本局。每局左侧灰色K线为入场前约一个月的真实走势，供你判断后再进场。</span></div>
+      </div>
+      <div class="hero-actions" style="margin-top:22px">
+        <button class="btn primary" id="btnRulesGo">开始自测</button>
+        <button class="btn" id="btnRulesBack">返回</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 开局自测 -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz">
+      <div class="q-dim">开局画像 · 20 道快问快答</div>
+      <h3>先说说你自认为的交易人格</h3>
+      <p class="note" style="margin-top:2px">凭直觉答，不用纠结。任何一题都可以跳过——跳过的维度，AI 会直接用你的实测行为说话。</p>
+      <div class="qprog"><div class="qprog-bar" id="qprogBar"></div></div>
+      <div class="qprog-meta"><span id="qprogTxt">1 / 20</span><span id="quizHint"></span></div>
+      <div id="quizBody"></div>
+      <div class="quiz-foot">
+        <button class="btn" id="btnQuizBack">← 先不测了</button>
+        <button class="btn" id="btnQuizSkip">跳过本题</button>
+        <button class="btn" id="btnQuizSkipAll">跳过剩余，直接开始</button>
+        <button class="btn" id="btnQuizRedo" hidden>重新作答</button>
+        <button class="btn primary" id="btnQuizGo" hidden>开始操盘 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 操盘 -->
+  <section id="screen-game" class="screen">
+    <div class="game-grid">
+      <div>
+        <div class="panel">
+          <div class="seg-bar">
+            <span class="seg-num" id="segNum">第 1 / 10 局</span>
+            <div class="seg-track" id="segTrack"></div>
+            <span class="rest" id="segRest"></span>
+            <button class="btn small" id="btnQuitGame">不想玩了？退出</button>
+          </div>
+          <div class="quote-bar">
+            <span class="nm" id="q-name"></span>
+            <span class="dt" id="q-date"></span>
+            <span class="px" id="q-px"></span>
+            <span class="pc" id="q-pc"></span>
+          </div>
+          <canvas id="chart" height="380"></canvas>
+        </div>
+        <div class="panel" style="margin-top:16px">
+          <div class="news-panel">
+            <h4><span>历史资讯</span><span>还原自公开报道</span></h4>
+            <div class="news-flash" id="newsFlash" hidden></div>
+            <div class="news-list" id="newsList"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="acct">
+          <div class="acct-head">
+            <span class="label">总资产</span>
+            <span class="pos-badge" id="posBadge">空仓</span>
+          </div>
+          <div class="big" id="a-total"></div>
+          <div class="ret" id="a-ret"></div>
+          <div class="acct-grid">
+            <span class="k">现金</span><span class="v" id="a-cash"></span>
+            <span class="k">持仓</span><span class="v" id="a-shares"></span>
+            <span class="k">成本价</span><span class="v" id="a-cost"></span>
+            <span class="k">浮动盈亏</span><span class="v" id="a-float"></span>
+          </div>
+        </div>
+        <div class="nav-row">
+          <button class="btn small" id="btnNext"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.2 4.35v7.3c0 .6.66.96 1.16.63l5.72-3.65a.75.75 0 0 0 0-1.26L4.36 3.72a.75.75 0 0 0-1.16.63z" fill="currentColor"/><rect x="12.1" y="3.9" width="2" height="8.2" rx="1" fill="currentColor"/></svg>下一日</button>
+          <button class="btn small" id="btnSkip"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2.2 4.35v7.3c0 .6.66.96 1.16.63l5.3-3.65a.75.75 0 0 0 0-1.26L3.36 3.72a.75.75 0 0 0-1.16.63z" fill="currentColor"/><path d="M8.6 4.35v7.3c0 .6.66.96 1.16.63l5.3-3.65a.75.75 0 0 0 0-1.26L9.76 3.72a.75.75 0 0 0-1.16.63z" fill="currentColor"/></svg>快进结算本局</button>
+        </div>
+        <div class="kbd-hint">快捷键：空格/点击K线 下一日 · B 买入（双击 = 满仓）· S 卖出（双击 = 清仓）· 回车 快进结算</div>
+        <div class="actions">
+          <div class="cap"><span class="cap-buy">买 入</span><span class="cap-sell">卖 出</span></div>
+          <button class="btn buy" id="btnHalf"></button>
+          <button class="btn buy" id="btnFull"></button>
+          <button class="btn sell" id="btnSellHalf"></button>
+          <button class="btn exit" id="btnClear">清仓</button>
+        </div>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 局结算浮层 -->
+  <div id="settle">
+    <div class="settle-card">
+      <div class="tag" id="st-tag">本局结算</div>
+      <h3 id="st-name"></h3>
+      <div class="story" id="st-story"></div>
+      <div class="meta" id="st-meta"></div>
+      <div class="settle-grid">
+        <div class="cell"><div class="k">本局收益</div><div class="v" id="st-ret"></div></div>
+        <div class="cell"><div class="k">满仓躺平</div><div class="v" id="st-bench"></div></div>
+        <div class="cell"><div class="k" id="st-tax-k">差距</div><div class="v" id="st-tax"></div></div>
+      </div>
+      <div class="settle-flags" id="st-flags"></div>
+      <div class="hero-actions">
+        <button class="btn primary" id="btnNextRound">进入下一局 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 历史战绩弹窗 -->
+  <div id="histModal">
+    <div class="settle-card" style="width:min(660px, calc(100vw - 40px))">
+      <div class="tag">历史战绩</div>
+      <h3 id="histName" style="overflow-wrap:anywhere"></h3>
+      <div id="histList" style="margin-top:12px;max-height:52vh;overflow-y:auto"></div>
+      <div class="hero-actions">
+        <button class="btn" id="btnHistClose">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 总报告 -->
+  <section id="screen-report" class="screen">
+    <div class="reveal" id="rp-reveal"></div>
+    <div class="report">
+      <div>
+        <div class="stat-grid" id="rp-stats"></div>
+        <div id="rp-rounds"></div>
+        <div class="flags" id="rp-flags"></div>
+        <div class="tier-ladder" id="rp-tiers"></div>
+        <div class="ai-card">
+          <h4><span class="dot"></span>逐段复盘 · 每一局都算得清 · <span id="rp-tier"></span></h4>
+          <div class="rp-save" id="rp-save"></div>
+          <div id="ai-text"></div>
+        </div>
+        <div class="ai-card" id="mbti-card">
+          <h4><span class="dot"></span>AI 深度分析 · 炒股 MBTI</h4>
+          <div id="mbti-body"><span class="caret"></span></div>
+        </div>
+      </div>
+      <div>
+        <canvas id="cert" width="750" height="1300"></canvas>
+        <div class="cert-cap">体检证书 · 长图保存后可直接转发微信</div>
+        <div class="report-actions">
+          <button class="btn primary" id="btnDownload">下载体检证书</button>
+          <button class="btn" id="btnAgain">再来一局</button>
+          <button class="btn" id="btnHistReport">历史战绩</button>
+        </div>
+      </div>
+      </div>
+  </section>
+
+  <!-- 历史战绩 · 单次体检详情页 -->
+  <section id="screen-histdetail" class="screen">
+    <div class="report" style="grid-template-columns:1fr">
+      <div>
+        <div class="hero" style="text-align:left;padding:0 0 6px">
+          <div class="sec" id="hdd-meta"></div>
+          <h2 id="hdd-tier"></h2>
+          <div class="hdd-badges" id="hdd-badges"></div>
+        </div>
+        <div class="stat-grid" id="hdd-stats"></div>
+        <div id="hdd-rounds"></div>
+        <div class="flags" id="hdd-flags"></div>
+        <div class="ai-card" id="hdd-ai" hidden></div>
+        <div class="report-actions">
+          <button class="btn" id="btnHdBack">← 返回战绩列表</button>
+          <button class="btn" id="btnHdHome">回首页</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="data.js?v=14"></script>
+<script>
+"use strict";
+const CAP = 1000000;
+const ROUNDS = 10;   // 每局从 40 只池随机抽 10 只（见 data.js）
+/* 评级阶梯：只有真正"高买低卖 + 深回撤 + 输给躺平"的灾难局才会垫底 */
+const TIERS = [[85, "人间清醒"], [72, "老手风范"], [58, "平平无奇"], [45, "情绪的奴隶"], [32, "资深韭菜"], [0, "天选接盘侠"]];
+
+/* 每局随机抽 10 只：先保证 ≥3 只创业板/科创板、≥2 只低波动，剩余名额从全池随机补齐。
+   旧版回填循环先吃配额池的剩余（6+4 恰好凑满 10），其他 20 只永远抽不到——每次都是同十只 */
+function pickDeck() {
+  const sh = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pool = sh([...SCENARIOS]);                     // 全池先洗牌，之后按顺序取即随机
+  const deck = [];
+  const take = f => { for (const s of pool) if (!deck.includes(s) && f(s)) { deck.push(s); return true; } return false; };
+  let gemN = 0, lowN = 0;
+  while (gemN < 3 && take(s => s.code.startsWith("sz.3") || s.code.startsWith("sh.68"))) gemN++;
+  while (lowN < 2 && take(s => s.vol === "低波动" && !deck.includes(s))) lowN++;
+  while (deck.length < ROUNDS && take(() => true)) {}  // 剩余名额从洗好的全池补齐（含配额池外的 20 只）
+  return sh(deck);
+}
+const $ = id => document.getElementById(id);
+const fmtW = v => (v/10000).toLocaleString("zh-CN", {maximumFractionDigits: 1}) + " 万";
+const fmtP = v => (v>=0?"+":"") + v.toFixed(2) + "%";
+const cls = v => v>=0 ? "up" : "down";
+
+/* ============ 主题调色板：canvas 绘图跟随日/夜主题（与 CSS 变量一致） ============ */
+function PAL() {
+  const de = document.documentElement;
+  const dark = !(de && de.dataset && de.dataset.theme === "light");   // 桩环境无 documentElement 时按夜间处理
+  return dark ? {
+    grid:"rgba(255,255,255,.05)", grid2:"rgba(255,255,255,.06)", dash:"rgba(255,255,255,.25)",
+    gray:"#8e8e93", axis:"rgba(142,142,147,.4)", axis2:"rgba(142,142,147,.28)", axis3:"rgba(142,142,147,.7)",
+    up:"#ff453a", down:"#30d158", upSoft:"#ff6961", downSoft:"#5fe08a",
+    legendUp:"rgba(255,105,97,.65)", legendDown:"rgba(95,224,138,.65)",
+    tint:"#0a84ff", tintSoft:"rgba(10,132,255,.5)", tintMid:"rgba(10,132,255,.75)",
+    chipInk:"#fff", ink:"#ffffff", dim:"#98989d", body:"#c7c7cc",
+    certBg:"#1c1c1e", certLine:"rgba(255,255,255,.1)", certLine2:"rgba(255,255,255,.06)",
+  } : {
+    grid:"rgba(60,60,67,.1)", grid2:"rgba(60,60,67,.09)", dash:"rgba(60,60,67,.3)",
+    gray:"#8e8e93", axis:"rgba(60,60,67,.35)", axis2:"rgba(60,60,67,.22)", axis3:"rgba(60,60,67,.55)",
+    up:"#ff3b30", down:"#34c759", upSoft:"#e64539", downSoft:"#1f9d4d",
+    legendUp:"rgba(230,69,57,.75)", legendDown:"rgba(31,157,77,.8)",
+    tint:"#007aff", tintSoft:"rgba(0,122,255,.5)", tintMid:"rgba(0,122,255,.75)",
+    chipInk:"#fff", ink:"#0d0d0f", dim:"#98989d", body:"#515154",
+    certBg:"#ffffff", certLine:"rgba(0,0,0,.12)", certLine2:"rgba(0,0,0,.05)",
+  };
+}
+
+/* ============ 用户系统（注册 / 登录 / 历史战绩 / 自动存档） ============ */
+/* 自测快照按用户名分键存储——之前全局一个 tt_quiz，A 的答案会预填给 B */
+const quizKey = () => "tt_quiz:" + AUTH.name;
+const AUTH = {
+  token: localStorage.getItem("tt_token") || "",
+  name: localStorage.getItem("tt_name") || "",
+  quiz: null,
+  guest() { return !this.token; },
+};
+if (AUTH.name) AUTH.quiz = JSON.parse(localStorage.getItem("tt_quiz:" + AUTH.name) || "null");
+function api(path, body) {
+  return fetch("/api/" + path, { method: "POST",
+    headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(r => r.json());
+}
+/* 换账号/退出必须清掉对局状态——G/S 是全局单例，否则下一个用户会看到上一个用户的牌局（看起来像"股票池被缓存"） */
+function resetGameState() { G = null; S = null; if (typeof combo !== "undefined") combo = { key: "", t: 0 }; }
+function setChip() {
+  const chip = $("userChip");
+  if (AUTH.name) { chip.hidden = false; $("ucName").textContent = AUTH.name; }
+  else chip.hidden = true;
+}
+function authMsg(text, ok) { const m = $("authMsg"); m.textContent = text; m.className = "auth-msg" + (ok ? " ok" : ""); }
+function doLogout() {
+  AUTH.token = ""; AUTH.name = ""; AUTH.quiz = null;
+  localStorage.removeItem("tt_token"); localStorage.removeItem("tt_name");
+  $("authUser").value = ""; $("authPass").value = ""; $("authPass2").value = ""; authMsg("");
+  resetGameState();
+  setChip(); show("screen-auth");
+}
+let authMode = "login";
+function setAuthMode(m) {
+  /* 切换 tab 清空输入框（登录信息不带入注册，反之亦然）；finally 里的同模式重设不清，避免输错重试被误清 */
+  if (m !== authMode) { $("authUser").value = ""; $("authPass").value = ""; $("authPass2").value = ""; }
+  authMode = m;
+  $("tabLogin").classList.toggle("on", m === "login");
+  $("tabRegister").classList.toggle("on", m === "register");
+  $("authPass2").hidden = m !== "register";
+  $("btnAuth").textContent = m === "login" ? "登录" : "注册并创建账号";
+}
+$("tabLogin").onclick = () => setAuthMode("login");
+$("tabRegister").onclick = () => setAuthMode("register");
+$("btnAuth").onclick = async () => {
+  const username = $("authUser").value.trim(), password = $("authPass").value;
+  const btn = $("btnAuth");
+  if (username.length < 2 || username.length > 20) return authMsg("用户名 2–20 个字符");
+  if (password.length < 6) return authMsg("密码至少 6 位");
+  if (authMode === "register" && password !== $("authPass2").value) return authMsg("两次输入的密码不一致");
+  btn.disabled = true;
+  btn.textContent = authMode === "login" ? "登录中…" : "注册中…";
+  try {
+    const d = await api(authMode, { username, password });
+    if (!d.ok) return authMsg(d.error || (authMode === "login" ? "登录失败" : "注册失败，稍后再试"));
+    AUTH.token = d.token; AUTH.name = d.username;
+    AUTH.quiz = Array.isArray(d.quiz) ? d.quiz : JSON.parse(localStorage.getItem("tt_quiz:" + d.username) || "null");
+    localStorage.setItem("tt_token", d.token); localStorage.setItem("tt_name", d.username);
+    if (AUTH.quiz) localStorage.setItem(quizKey(), JSON.stringify(AUTH.quiz));
+    resetGameState();   // 上一个账号的对局不带入
+    setChip();
+    authMsg(authMode === "register" ? "注册成功，账号已创建并自动登录 ✓" : "登录成功 ✓", true);
+    show("screen-select");
+  } catch (e) {
+    authMsg("服务器连接失败，请确认服务已启动");
+  } finally {
+    btn.disabled = false;
+    setAuthMode(authMode);
+  }
+};
+$("btnGuest").onclick = () => { AUTH.token = ""; AUTH.name = "游客"; AUTH.quiz = null; resetGameState(); setChip(); show("screen-select"); };
+$("btnLogout").onclick = doLogout;
+const HIST = { games: [] };
+async function openHistory() {
+  if (AUTH.guest()) { authMsgWrap(); return; }
+  const d = await api("history", { token: AUTH.token });
+  if (!d.ok) return doLogout();
+  HIST.games = d.games || [];
+  $("histName").textContent = AUTH.name + " 的战绩档案 · 共 " + HIST.games.length + " 次 · 点任意一条看完整详情";
+  $("histList").innerHTML = HIST.games.length ? HIST.games.map((g, gi) => `
+    <div class="hist-item clickable" data-gi="${gi}">
+      <div class="hist-row">
+        <span class="t">${String(g.created_at).slice(0, 16)}</span>
+        <span class="tier">${g.tier}</span>
+        <span class="sc">${g.score} 分</span>
+        <span class="ret ${cls(g.total_ret_pct)}">${fmtP(g.total_ret_pct)}</span>
+        <span class="caret-g">详情 ›</span>
+      </div>
+      <div class="hist-sub">
+        <span class="n-ops">操作 ${g.trades} 次 · 回撤 ${(+g.mdd_pct).toFixed(1)}%</span>
+        <span class="mb">${g.mbti_measured || "—"}${g.mbti_name ? " " + g.mbti_name : ""}</span>
+      </div>
+    </div>`).join("")
+    : `<p class="note">还没有体检记录——完成一次十局操盘后自动存档。</p>`;
+  /* 点击任意一条 → 跳转该次体检的详情页 */
+  $("histList").querySelectorAll(".hist-item.clickable").forEach(el => {
+    el.style.cursor = "pointer";
+    el.onclick = () => openHistDetail(HIST.games[+el.dataset.gi]);
+  });
+  $("histModal").classList.add("on");
+}
+/* 单次体检详情页：资产/躺平/回撤/操作 + 十局逐局数据 + 行为标记 + 当时的 MBTI */
+function openHistDetail(g) {
+  const det = g.detail || {};
+  const rounds = det.rounds || [];
+  const flags = det.flags || {};
+  $("hdd-meta").textContent = `${g.created_at} · ${AUTH.name}`;
+  $("hdd-tier").textContent = `${g.tier} · ${g.score} 分`;
+  /* 头部用徽章组代替长句：实测/自评/盈亏归因各占一枚，亏损时情绪税转「逆势阿尔法」 */
+  const taxLabel = g.tax_yuan < 0 ? "逆势阿尔法" : "情绪税";
+  $("hdd-badges").innerHTML = `
+    <span class="hdd-badge gold">实测 ${g.mbti_measured || "—"}${g.mbti_name ? " · " + g.mbti_name : ""}</span>
+    <span class="hdd-badge">自评 ${g.mbti_self || "?"}</span>
+    <span class="hdd-badge ${taxLabel === "情绪税" ? "bad" : "good"}">${taxLabel} ${fmtW(Math.abs(g.tax_yuan))}</span>`;
+  $("hdd-stats").innerHTML = `
+    <div class="stat"><div class="k">最终资产</div><div class="v">¥${Math.round(g.final_assets).toLocaleString()}</div><div class="d">总收益 ${fmtP(g.total_ret_pct)}</div></div>
+    <div class="stat"><div class="k">十局全躺平</div><div class="v ${cls(g.bench_ret_pct)}">${fmtP(g.bench_ret_pct)}</div><div class="d">假设每局都满仓买入并拿到底</div></div>
+    <div class="stat"><div class="k">最大回撤</div><div class="v">${(+g.mdd_pct).toFixed(1)}%</div><div class="d">全程资产曲线峰谷</div></div>
+    <div class="stat"><div class="k">操作次数</div><div class="v">${g.trades}</div><div class="d">十局平均 ${(g.trades / 10).toFixed(1)} 次/局</div></div>`;
+  $("hdd-rounds").innerHTML = rounds.length ? rounds.map(rd => `
+    <div class="round-card">
+      <div class="rc-head">
+        <span class="rc-no">第 ${rd.r} 局</span>
+        <span class="rc-name">${rd.name}</span>
+      </div>
+      <div class="rc-grid">
+        <div><i>本局收益</i><b class="${cls(rd.ret_pct)}">${fmtP(rd.ret_pct)}</b></div>
+        <div><i>满仓躺平</i><b class="${cls(rd.bench_pct)}">${fmtP(rd.bench_pct)}</b></div>
+        <div><i>超额</i><b class="${cls(rd.ret_pct - rd.bench_pct)}">${((rd.ret_pct - rd.bench_pct) >= 0 ? "+" : "") + (rd.ret_pct - rd.bench_pct).toFixed(2)} pp</b></div>
+        <div><i>操作次数</i><b>${rd.ops}</b></div>
+      </div>
+    </div>`).join("")
+    : `<p class="note">这一局的逐局明细没有保存下来，仅显示汇总数据。</p>`;
+  const chips = [
+    ["追高买入", flags.chase], ["恐慌卖出", flags.panic], ["止损离场", flags.cutLoss], ["卖飞", flags.soldFly],
+  ].filter(f => f[1] > 0).map(f => `<span class="flag bad">${f[0]} ×${f[1]}</span>`).join("");
+  $("hdd-flags").innerHTML = chips || `<span class="flag good">无典型行为偏差</span>`;
+  /* 当时的体检总评 + AI 深度分析（AI 异步补写进 detail，旧存档可能没有） */
+  const aiEl = $("hdd-ai");
+  const ai = det.ai, sum = det.summary;
+  if (sum || (ai && ai.one_liner)) {
+    aiEl.hidden = false;
+    const sec = (title, items) => items && items.length ? `<div class="mbti-sec"><b>${title}</b><ul>${items.map(x => `<li>${x}</li>`).join("")}</ul></div>` : "";
+    aiEl.innerHTML = `
+      <h4><span class="dot"></span>体检总评 · AI 深度分析${ai && ai.code ? ` · ${ai.code} ${ai.name || ""}` : ""}</h4>
+      ${sum ? `<div class="mbti-sec"><b>逐段复盘</b><div style="white-space:pre-wrap">${sum}</div></div>` : ""}
+      ${ai && ai.one_liner ? `<div class="mbti-sec"><b>总评</b>${ai.one_liner}</div>` : ""}
+      ${ai && ai.drift_note ? `<div class="mbti-sec"><b>AI 漂移点评</b>${ai.drift_note}</div>` : ""}
+      ${sec("优势", ai && ai.strengths)}
+      ${sec("不足", ai && ai.weaknesses)}
+      ${sec("建议", ai && ai.advice)}
+      ${ai && ai.segment_note && ai.segment_note !== "无" ? `<div class="mbti-sec"><b>关键局点评</b>${ai.segment_note}</div>` : ""}`;
+  } else aiEl.hidden = true;
+  $("histModal").classList.remove("on");
+  show("screen-histdetail");
+}
+$("btnHdBack").onclick = () => openHistory();
+$("btnHdHome").onclick = () => show("screen-select");
+$("btnHistory").onclick = openHistory;
+$("btnHistReport").onclick = openHistory;
+$("btnHistSelect").onclick = openHistory;
+function authMsgWrap() {
+  $("histName").textContent = "历史战绩";
+  $("histList").innerHTML = `<p class="note">游客模式不保存战绩。回到首页登录后，每局体检成绩会自动存档。</p>`;
+  $("histModal").classList.add("on");
+}
+$("btnHistClose").onclick = () => $("histModal").classList.remove("on");
+setChip();
+show(AUTH.token ? "screen-select" : "screen-auth");
+/* 记住的登录态开机校验：服务器不认了（重启过）就清掉，停在登录页——别让"幽灵登录"骗人 */
+if (AUTH.token) {
+  api("history", { token: AUTH.token }).then(d => {
+    if (d && d.ok) { HIST.games = d.games || []; return; }
+    AUTH.token = ""; AUTH.name = ""; AUTH.quiz = null;
+    localStorage.removeItem("tt_token"); localStorage.removeItem("tt_name");
+    resetGameState(); setChip(); show("screen-auth");
+    authMsg("登录状态已过期，请重新登录");
+  }).catch(() => {});   // 服务暂时不可达：保留会话，不打扰
+}
+
+/* ============ 入口 / 玩法说明 ============ */
+$("btnStart").onclick = () => show("screen-rules");
+$("btnRulesBack").onclick = () => show("screen-select");
+$("btnRulesGo").onclick = () => startQuiz();
+
+function show(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
+  $(id).classList.add("on");
+}
+
+/* ============ 开局自测（自评 MBTI · 20 题可跳过） ============ */
+const DIMS = [
+  { key: "R", hi: "B", hiName: "梭哈型", lo: "C", loName: "稳健型", name: "风险承受" },
+  { key: "S", hi: "Q", hiName: "快枪型", lo: "P", loName: "蛰伏型", name: "决策速度" },
+  { key: "I", hi: "N", hiName: "消息型", lo: "F", loName: "信仰型", name: "信息依赖" },
+  { key: "P", hi: "T", hiName: "拿不住型", lo: "H", loName: "死扛型", name: "盈亏处理" },
+];
+/* 20 题 = 每维度 5 题，四个维度轮流出题；分值 1.0 = 高风险/高频/消息/拿不住侧 */
+const QUIZ = [
+  { d: "R", q: "满仓之后，第二天开盘直接暴跌 6%，你会？",
+    opts: [["补仓摊薄成本", 1.0], ["装死不动，当没开过账户", 0.7], ["卖一半，先降风险", 0.4], ["全部割肉，落袋为安", 0.05]] },
+  { d: "S", q: "你的真实操作节奏更接近哪种？",
+    opts: [["天天看盘，手痒就想动", 1.0], ["一周操作一两次", 0.65], ["一个月动一次", 0.3], ["建仓后直接卸载软件", 0.05]] },
+  { d: "I", q: "下单前，你打开行情软件主要看什么？",
+    opts: [["最新消息和公告", 1.0], ["股吧 / 大V 在买什么", 0.8], ["K线和技术指标", 0.4], ["看一眼就直接买", 0.05]] },
+  { d: "P", q: "两只持仓一只赚 20% 一只亏 15%，急需用钱必须卖一只，你卖？",
+    opts: [["卖赚钱的那只", 1.0], ["各卖一半", 0.5], ["卖亏钱的那只，让利润奔跑", 0.3], ["咬牙都不卖", 0.05]] },
+  { d: "R", q: "你能接受的单日最大浮亏大概是多少？",
+    opts: [["10% 以上也还好", 1.0], ["5% 左右就到顶了", 0.65], ["2%–3% 是极限", 0.35], ["亏 1% 就睡不着", 0.05]] },
+  { d: "S", q: "盘中突发一根直线拉升 5%，你会？",
+    opts: [["几秒内就追进去", 1.0], ["观察几分钟再决定", 0.6], ["当天不动，明天看", 0.3], ["拉升与我无关", 0.05]] },
+  { d: "I", q: "一条突发利好弹出来，你的第一反应是？",
+    opts: [["立刻查相关标的准备上车", 1.0], ["看看市场反应再说", 0.6], ["先判断消息是真是假", 0.3], ["利好兑现多是出货，冷眼旁观", 0.05]] },
+  { d: "P", q: "浮盈 15% 之后，你通常会？",
+    opts: [["很快就卖，怕利润回吐", 1.0], ["卖一半，落袋一半", 0.65], ["设个回撤线，破了才走", 0.35], ["拿住，让利润奔跑", 0.05]] },
+  { d: "R", q: "20cm 涨跌停的创业板 / 科创板股票，对你？",
+    opts: [["刺激，就是冲这个来的", 1.0], ["可以小仓位玩玩", 0.6], ["太刺激了，很少碰", 0.25], ["只买主板白马", 0.05]] },
+  { d: "S", q: "持仓三个月纹丝不动，你会？",
+    opts: [["早换了，机会成本太高", 1.0], ["会拿它做做T摊成本", 0.6], ["再等等，不差这三个月", 0.3], ["拿着，时间是我的朋友", 0.05]] },
+  { d: "I", q: "你更相信哪类信息？",
+    opts: [["权威媒体的突发新闻", 1.0], ["财经大V和股吧情绪", 0.75], ["公司公告和财报原文", 0.4], ["自己的独立判断", 0.1]] },
+  { d: "P", q: "浮亏 15% 且基本面没变坏，你会？",
+    opts: [["割了再说，眼不见心不烦", 1.0], ["先减仓降风险", 0.6], ["补仓摊低成本", 0.35], ["死扛等回本", 0.05]] },
+  { d: "R", q: "账户浮盈 30% 时，你会？",
+    opts: [["加仓乘胜追击", 1.0], ["保持仓位不动", 0.6], ["卖一半锁住利润", 0.35], ["全部清仓落袋为安", 0.05]] },
+  { d: "S", q: "上午不能看盘，你会？",
+    opts: [["心里痒，偷偷刷手机看", 1.0], ["中午休息时看一眼", 0.6], ["收盘后看结果就行", 0.3], ["无所谓，本来也不天天看", 0.05]] },
+  { d: "I", q: "财报季对你意味着什么？",
+    opts: [["博弈业绩超预期的机会", 1.0], ["参考一下市场情绪", 0.6], ["认真读财报里的基本面", 0.35], ["只是噪音，走势说明一切", 0.05]] },
+  { d: "P", q: "卖出后股票又涨了 20%，你会？",
+    opts: [["追回去，不能踏空", 1.0], ["懊恼半天，盯着想再上车", 0.7], ["告诉自己赚到就好", 0.3], ["无所谓，市场里机会永远有", 0.05]] },
+  { d: "R", q: "你怎么看「上杠杆」？",
+    opts: [["用过，收益放大才够味", 1.0], ["想试但一直没敢", 0.6], ["明确不碰", 0.2], ["听到就害怕", 0.05]] },
+  { d: "S", q: "你更享受哪种状态？",
+    opts: [["频繁交易，每一笔都刺激", 1.0], ["一两周出手一次", 0.6], ["长期持有，偶尔调整", 0.25], ["买完就忘，年底才看", 0.05]] },
+  { d: "I", q: "大V喊单「这只票要翻倍」，你会？",
+    opts: [["跟着买点", 1.0], ["半信半疑买一点", 0.65], ["只当情绪参考", 0.3], ["反着想：他为什么让我看见", 0.05]] },
+  { d: "P", q: "你更怕哪种情况？",
+    opts: [["到手的利润飞了", 1.0], ["卖飞后追高被套", 0.6], ["割在黎明前", 0.4], ["深套十年动弹不得", 0.1]] },
+];
+let quizAns = [], qi = 0, quizTouched = false;   // quizTouched：本次会话是否作答过（区分「显示上次画像」与「刚答完」）
+
+/* 选项乱序：每题按题号做一次固定洗牌，只打乱展示顺序，分值映射不变（答案存分值，与位置无关）。
+   防止"全选前两项就是同一类人格"这种可预测的排列规律 */
+(function shuffleQuizOpts() {
+  let seed = 20261013;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+  QUIZ.forEach(q => {
+    const opts = q.opts.slice();
+    for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+    q.opts = opts;
+  });
+})();
+
+function startQuiz() {
+  quizAns = Array(QUIZ.length).fill(null);
+  /* 预填上次自测答案：0–1 = 选项分值，-1 = 上次主动跳过，长度不匹配（题目改版）作废 */
+  if (AUTH.quiz && AUTH.quiz.length === QUIZ.length) {
+    quizAns = AUTH.quiz.map(v => (typeof v === "number" && (v === -1 || (v >= 0 && v <= 1))) ? v : null);
+  }
+  quizTouched = false;
+  /* 做过自测（有作答或跳过记录）→ 直接落到完成页显示上次画像；想重测点「重新作答」 */
+  qi = quizAns.some(a => a !== null) ? QUIZ.length : 0;
+  $("btnQuizGo").hidden = true;
+  show("screen-quiz");
+  renderQ();
+}
+/* 自测答案持久化：完成即存（不等开局）。登录用户存服务器，同时本机留一份 */
+function persistQuiz() {
+  AUTH.quiz = [...quizAns];
+  localStorage.setItem(quizKey(), JSON.stringify(AUTH.quiz));
+  if (AUTH.token) api("save_quiz", { token: AUTH.token, answers: quizAns }).catch(() => {});
+}
+function renderQ() {
+  const body = $("quizBody");
+  if (qi >= QUIZ.length) {
+    /* 完成页：主动跳过（-1）显示 —·已跳过，真未答显示 ?·未作答，二者不再混为一谈 */
+    const sd = DIMS.map(d => {
+      const vals = quizAns.map((a, i) => QUIZ[i].d === d.key ? a : null).filter(a => a !== null);
+      if (!vals.length) return { code: "?", label: "未作答", done: false };
+      const ans = vals.filter(a => a >= 0);
+      if (!ans.length) return { code: "—", label: "已跳过", done: false };
+      return { code: ans.reduce((s, x) => s + x, 0) / ans.length >= 0.5 ? d.hi : d.lo,
+               label: ans.reduce((s, x) => s + x, 0) / ans.length >= 0.5 ? d.hiName : d.loName, done: true };
+    });
+    const code = sd.map(x => x.code).join("");
+    const full = sd.every(x => x.done);      // 四维全部作答才展示完整代号，否则用中性标签
+    const skippedN = sd.filter(x => x.code === "—").length;
+    const nullN = sd.filter(x => x.code === "?").length;
+    /* 做过自测的用户直接落到本页 → 标题写明是上一次的画像 */
+    const last = !quizTouched;
+    const base = last ? "你上一次的自评画像" : "你的自评画像";
+    const title = !skippedN && !nullN ? base
+      : skippedN && !nullN ? (last ? `上一次跳过了 ${skippedN} 个维度 · 可重新作答补全` : `${skippedN} 个维度已跳过 · 完整画像等你十局之后验证`)
+      : (last ? "上一次有维度未作答 · 可重新作答补全" : "部分维度未作答——完整画像等你十局之后验证");
+    body.innerHTML = `<div class="qcard">
+      <div class="q-dim">自评${last ? "记录" : "完成"}</div>
+      <div class="q-title">${title}</div>
+      ${full ? `<div class="self-code">${code}</div>` : ""}
+      <div class="dim-chips">${sd.map((x, i) =>
+        `<span class="dim-chip${x.done ? " on" : ""}"><i>${DIMS[i].name}</i>${x.done ? x.code + " · " + x.label : x.label}</span>`).join("")}</div>
+      <p class="note">${skippedN && !last ? "跳过的维度以 — 表示，不算未作答。" : ""}画像已自动保存${AUTH.token ? "到你的账号" : "到本机"}，下次进入直接显示。自评只是起点，AI 更感兴趣的是它和你十局真实操作的漂移。</p></div>`;
+    persistQuiz();
+    $("btnQuizGo").hidden = false;
+    $("btnQuizRedo").hidden = false;
+    $("btnQuizSkip").hidden = true;
+    $("btnQuizSkipAll").hidden = true;
+  } else {
+    const q = QUIZ[qi], d = DIMS.find(x => x.key === q.d);
+    body.innerHTML = `<div class="qcard">
+      <div class="q-dim">${d.name} · ${d.hiName} / ${d.loName}</div>
+      <div class="q-title">${qi + 1}. ${q.q}</div>
+      ${q.opts.map((o, oi) => `<button class="opt${quizAns[qi] === o[1] ? " picked" : ""}" data-o="${oi}">${o[0]}</button>`).join("")}
+    </div>`;
+    body.querySelectorAll(".opt").forEach(b => b.onclick = () => quizPick(+b.dataset.o));
+    $("btnQuizGo").hidden = true;
+    $("btnQuizRedo").hidden = true;
+    $("btnQuizSkip").hidden = false;
+    $("btnQuizSkipAll").hidden = false;
+  }
+  updateQProg();
+}
+function quizPick(o) { if (qi >= QUIZ.length) return; quizAns[qi] = QUIZ[qi].opts[o][1]; quizTouched = true; qi++; renderQ(); }
+function quizSkipQ() { if (qi >= QUIZ.length) return; quizAns[qi] = -1; quizTouched = true; qi++; renderQ(); }   // -1 = 主动跳过（区别于未答 null），重进时保留跳过态
+function updateQProg() {
+  $("qprogBar").style.width = (Math.min(qi, QUIZ.length) / QUIZ.length * 100) + "%";
+  $("qprogTxt").textContent = qi >= QUIZ.length ? "完成" : `${qi + 1} / ${QUIZ.length}`;
+  const done = quizAns.slice(0, Math.min(qi, QUIZ.length));
+  const answered = done.filter(a => a !== null && a >= 0).length;
+  const skipped = done.length - answered;
+  const base = `已答 ${answered} · 跳过 ${skipped}`;
+  const cur = qi < QUIZ.length ? quizAns[qi] : null;
+  $("quizHint").textContent =
+    cur === -1 ? base + " · 上次你跳过了这道题，可作答或继续跳过"
+    : cur !== null ? base + " · 已按上次的选择填好，可改"
+    : base;
+}
+$("btnQuizSkip").onclick = quizSkipQ;
+$("btnQuizSkipAll").onclick = () => { quizTouched = true; while (qi < QUIZ.length) quizAns[qi++] = -1; renderQ(); };
+$("btnQuizRedo").onclick = () => { quizAns = Array(QUIZ.length).fill(null); qi = 0; quizTouched = false; renderQ(); };
+$("btnQuizGo").onclick = startCampaign;
+$("btnQuizBack").onclick = () => show("screen-select");
+/* 结束体验：两步确认防误触，退出即清空当前对局回到首页 */
+let quitArm = 0;
+$("btnQuitGame").onclick = () => {
+  const b = $("btnQuitGame");
+  if (Date.now() - quitArm < 3000) { quitArm = 0; resetGameState(); show("screen-select"); return; }
+  quitArm = Date.now();
+  b.textContent = "再点一次，确认退出";
+  setTimeout(() => { b.textContent = "不想玩了？退出"; }, 3000);
+};
+
+function selfMBTI() {
+  return DIMS.map(d => {
+    const ans = quizAns.map((a, i) => QUIZ[i].d === d.key ? a : null).filter(a => a !== null && a >= 0);
+    if (!ans.length) return "?";
+    return ans.reduce((s, x) => s + x, 0) / ans.length >= 0.5 ? d.hi : d.lo;
+  }).join("");
+}
+
+/* ============ 炒股 MBTI 16 型注册表 ============ */
+/* 字母序：R(B梭哈/C稳健) S(Q快枪/P蛰伏) I(N消息/F信仰) P(T拿不住/H死扛) */
+const MBTI16 = {
+  // —— 游资组 QN：反应快 · 跟着消息打 ——
+  BQNT: { name: "打板冲锋号", group: "游资组", persona: "举着喇叭冲向涨停板的旗手",
+          desc: "新闻一出满仓上，热闹就是你的兴奋剂；涨了立刻走，从不赴宴到散场。" },
+  CQNT: { name: "闪电情报员", group: "游资组", persona: "戴耳机盯六块屏幕的快枪手",
+          desc: "消息驱动、快进快出，但仓位永远只下一半——留一半清醒留一半醉。" },
+  BQNH: { name: "追涨仓鼠", group: "游资组", persona: "抱着K线狂奔、摔倒也不撒手的仓鼠",
+          desc: "手速一流、仓位拉满，唯一的出场方式是套牢后一动不动。" },
+  CQNH: { name: "敏捷筑巢鸟", group: "游资组", persona: "衔着枝条来回穿梭的鸟",
+          desc: "小仓快试、错了就撤，套了也能拿——灵活与耐心兼得的少数派。" },
+  // —— 侠客组 QF：反应快 · 只信自己的盘感 ——
+  BQFT: { name: "孤独枪手", group: "侠客组", persona: "不看报纸、只看弹巢的西部牛仔",
+          desc: "盘感即信仰，梭哈即浪漫；赚一点就翻身上马奔向下一座城。" },
+  CQFT: { name: "丛林豹", group: "侠客组", persona: "草丛里伏击、出手只一瞬的豹",
+          desc: "技术面狩猎，半仓游击，见好就收——森林里最冷静的捕食者。" },
+  BQFH: { name: "信仰骑士", group: "侠客组", persona: "举着旗帜冲山头、摔了继续冲的骑士",
+          desc: "手快、心热、仓位重，靠一口气撑起全部回撤。" },
+  CQFH: { name: "网格织匠", group: "侠客组", persona: "安静织网、越破越补的蜘蛛",
+          desc: "快进快出外加越跌越补，把仓位管理织成一张网。" },
+  // —— 谋士组 PN：节奏慢 · 重情报 ——
+  BPNT: { name: "情报赌徒", group: "谋士组", persona: "坐在赌桌边的军师",
+          desc: "只押大消息、只下重注、小赚就跑——三次押注定输赢。" },
+  CPNT: { name: "围棋谋士", group: "谋士组", persona: "长考半小时落子一瞬的棋手",
+          desc: "慢、稳、轻仓，见好就收；你的对手盘是你的耐心的反面。" },
+  BPNH: { name: "躺平舵手", group: "谋士组", persona: "漂在海上、早已不碰舵的船长",
+          desc: "听消息重仓上船，之后交给命运——船沉不沉与你无关。" },
+  CPNH: { name: "定投苦行僧", group: "谋士组", persona: "往山顶推石的西西弗斯",
+          desc: "低频、半仓、越跌越拿，用纪律对抗人性。" },
+  // —— 隐士组 PF：节奏慢 · 只信逻辑 ——
+  BPFT: { name: "孤勇赌徒", group: "隐士组", persona: "把全部家当押给命运的牛仔",
+          desc: "极少出手，出手就是信仰仓；赢了封神，输了归零。" },
+  CPFT: { name: "禅修猎手", group: "隐士组", persona: "竹林里三天不动、一击即走的猎人",
+          desc: "信仰半仓、出手极简、止盈干脆——贝叶斯遇上禅。" },
+  BPFH: { name: "殉道隐士", group: "隐士组", persona: "风雨里不挪窝的守灯塔人",
+          desc: "信仰重仓、十年死扛，账户曲线就是你的信念曲线。" },
+  CPFH: { name: "时间之友", group: "隐士组", persona: "前人栽树、后人乘凉的种树人",
+          desc: "低频、轻仓、信仰长持——种下树，然后等风来。" },
+};
+function mbtiType(code) {
+  return MBTI16[code] || { name: "未命名旅人", group: "—", persona: "还没被定义的形象", desc: "行为样本不足，类型待定。" };
+}
+
+/* ============ 十局制游戏状态 ============ */
+/* 买入/卖出/强平一律按当日收盘价（k.c[S.i]）成交 */
+let G = null, S = null;
+
+function startCampaign() {
+  G = { r: 0, cash: CAP, rounds: [], allTrades: [], skipped: new Set(), deck: pickDeck() };
+  /* 自测答案快照：登录用户存服务器（users.quiz 供下次预填；games.quiz 随存档留档） */
+  if (AUTH.token) {
+    AUTH.quiz = [...quizAns];
+    localStorage.setItem(quizKey(), JSON.stringify(AUTH.quiz));
+    api("save_quiz", { token: AUTH.token, answers: quizAns }).catch(() => {});
+  }
+  startRound();
+}
+function startRound() {
+  const scen = G.deck[G.r], k = scen.k;
+  S = { scen, len: k.dates.length, i: 0, startCash: G.cash, cash: G.cash,
+        shares: 0, cost: 0, trades: [], done: false, settleTimer: null,
+        newsIdx: scen.news.map(n => k.dates.findIndex(d => d >= n[0])).filter(x => x >= 0) };
+  $("newsList").innerHTML = ""; $("log").innerHTML = ""; $("newsFlash").hidden = true;
+  $("settle").classList.remove("on");
+  show("screen-game");
+  toastLog(`第 ${G.r + 1} 局接入 · ${scen.name}（${scen.sector}）· ${S.len} 个交易日`);
+  toastLog("灰色K线 = 入场前约一个月走势（仅供判断）· B=买入 S=卖出/清仓");
+  drawAll();
+}
+
+/* 行情推进：最后一天收盘后自动结算 */
+function nextDay() {
+  if (!S || S.done) return;
+  if (S.i >= S.len - 1) return;               // 已到最后一天，等待自动结算
+  S.i++;
+  drawAll();
+  if (S.i === S.len - 1) S.settleTimer = setTimeout(endRound, 900);
+}
+function skipRound() {
+  if (!S || S.done) return;
+  clearTimeout(S.settleTimer);
+  S.i = S.len - 1;
+  drawAll();
+  endRound();
+}
+$("btnNext").onclick = nextDay;
+$("btnSkip").onclick = skipRound;
+/* 连击检测：空仓双击 B = 满仓买入（第一段买半仓、800ms 内第二段自动加满）；满仓双击 S = 清仓 */
+let combo = { key: "", t: 0 };
+function comboArm(key) {
+  const now = Date.now();
+  const dbl = combo.key === key && now - combo.t < 800;
+  combo = { key, t: now };
+  return dbl;
+}
+function pulseBtn(el) { el.classList.remove("pulse"); void el.offsetWidth; el.classList.add("pulse"); }
+document.addEventListener("keydown", e => {
+  if (!$("screen-game").classList.contains("on") || !S || S.done) return;
+  /* 焦点在按钮/输入框上时只走控件自身行为（如回车激活按钮），全局快捷键不抢 */
+  const tg = e.target && e.target.tagName;
+  if (tg === "BUTTON" || tg === "INPUT" || tg === "TEXTAREA") return;
+  if ($("settle").classList.contains("on")) return;   // 结算浮层打开时不响应操盘键
+  if (e.code === "Space" || e.code === "ArrowRight") { e.preventDefault(); nextDay(); }
+  else if (e.code === "Enter") { e.preventDefault(); skipRound(); }
+  else if (e.code === "KeyB") {
+    e.preventDefault();
+    const lv = posLevel();
+    if (lv >= 2) return toastLog("已满仓——先 S 卖出，B 不再吃筹码");
+    const dbl = comboArm("B");
+    if (lv === 0) { buy(0.5); pulseBtn($("btnFull")); if (!dbl) toastLog("半仓成交 · 800ms 内再按 B 直达满仓（双击 B = 满仓买入）"); }
+    else { buy(1); if (dbl) toastLog("双击 B · 已满仓买入"); }
+  }
+  else if (e.code === "KeyS") {
+    e.preventDefault();
+    const lv = posLevel();
+    if (lv === 0) return;
+    const dbl = comboArm("S");
+    if (lv === 2) { sellHalf(); pulseBtn($("btnClear")); if (!dbl) toastLog("已卖半仓 · 800ms 内再按 S 清仓（双击 S = 清仓）"); }
+    else { doClear(); if (dbl) toastLog("双击 S · 已清仓"); }
+  }
+});
+document.getElementById("chart").addEventListener("click", () => { if (S && !S.done) nextDay(); });
+
+/* ============ 交易（全部按当日收盘价 · 仓位三档：空仓/半仓/满仓） ============ */
+function price() { return S.scen.k.c[S.i]; }
+function total() { return S.cash + S.shares * price(); }
+function posLevel() {
+  if (S.shares === 0) return 0;
+  // 买不起一手(100股)就视为满仓——高价股加仓后剩余现金不足一手，之前被误判成半仓
+  return S.cash < price() * 100 ? 2 : 1;   // 1=半仓 2=满仓
+}
+function record(t) {
+  t.r = G.r; t.i = S.i;
+  t.date = S.scen.k.dates[S.i];
+  t.pct = S.scen.k.pct[S.i] || 0;
+  t.nearNews = t.pct >= 3.5 || S.newsIdx.some(ni => S.i >= ni && S.i <= ni + 2);
+  S.trades.push(t);
+  if (!t.forced) G.allTrades.push(t);
+  if (t.action.includes("买入")) {
+    const sc = S.scen, k = sc.k;
+    // 20 日高点要把入场前 lookback K线一起算：只用窗口内数据时，首日序列里只有自己，
+    // price >= hi20*0.97 恒成立，任何首日买入都会被误判成追高
+    const all = sc.lb.c.concat(k.c.slice(0, S.i + 1));
+    const hi20 = Math.max(...all.slice(-20));
+    t.chase = k.pct[S.i] >= 4 || t.price >= hi20 * 0.97;
+  }
+  drawAll();
+}
+function buy(fraction) {
+  if (S.done) return;
+  const p = price();
+  const level = posLevel();
+  if (level === 2) return toastLog("已满仓——先卖出一半，才能再买回满仓");
+  if (level === 1) fraction = 1;            // 半仓时唯一买操作：加至满仓
+  // 空仓时全部资产就是现金，按当前现金的 fraction 计算——用期初资金会在亏损后再入场时买超、现金变负
+  const budget = S.cash * fraction;
+  const lots = Math.floor(budget / p / 100) * 100;
+  if (lots <= 0) return toastLog("资金不足，无法成交");
+  S.cost = (S.cost * S.shares + lots * p) / (S.shares + lots);
+  S.shares += lots;
+  S.cash -= lots * p;
+  const allIn = level === 0 && fraction === 1;
+  record({ action: level === 0 ? (allIn ? "满仓买入" : "买入半仓") : "加仓至满仓", price: p, shares: lots, allIn });
+}
+function sellHalf() {
+  if (S.done) return;
+  if (posLevel() !== 2) return toastLog("半仓状态下没有再卖一半的操作，只能清仓");
+  const p = price();
+  const lots = Math.max(100, Math.floor(S.shares / 2 / 100) * 100);
+  const pnl = (p - S.cost) * lots;
+  S.cash += lots * p; S.shares -= lots;
+  record({ action: "卖出半仓", price: p, shares: lots, pnl, cost: S.cost });
+}
+function doClear() {
+  if (S.done || S.shares === 0) return;
+  const p = price(), sh = S.shares;
+  const pnl = (p - S.cost) * sh;
+  S.cash += sh * p; S.shares = 0;
+  record({ action: "清仓", price: p, shares: sh, pnl, cost: S.cost });
+  toastLog("已清仓——可空仓观望，也可重新建仓；本局最后一个交易日收盘后自动结算");
+}
+$("btnHalf").onclick = () => buy(0.5);
+$("btnFull").onclick = () => buy(1);
+$("btnSellHalf").onclick = sellHalf;
+$("btnClear").onclick = doClear;
+
+function toastLog(msg) {
+  const d = document.createElement("div");
+  d.className = "li"; d.textContent = "· " + msg;
+  $("log").prepend(d);
+}
+
+/* ============ 局结算 ============ */
+function endRound() {
+  if (!S || S.done) return;
+  clearTimeout(S.settleTimer);
+  S.done = true;
+  const k = S.scen.k;
+  // 持仓按最后一日收盘价自动强平
+  if (S.shares > 0) {
+    const p = price(), sh = S.shares;
+    const pnl = (p - S.cost) * sh;
+    S.cash += sh * p; S.shares = 0;
+    record({ action: "强制清仓（本局窗口结束）", price: p, shares: sh, pnl, cost: S.cost, forced: true });
+    toastLog(`窗口结束，按收盘价 ${p.toFixed(2)} 强制平仓`);
+  }
+  const noAction = S.trades.filter(t => !t.forced).length === 0;
+  if (noAction) G.skipped.add(G.r);
+  const finalV = S.cash;
+  const ret = finalV / S.startCash - 1;
+  const bShares = Math.floor(S.startCash / k.c[0] / 100) * 100;
+  // 躺平 = 整手买入并持有到窗口结束；整手取整后剩下的零钱仍留在账户里，不能丢
+  const benchV = bShares * k.c[S.len - 1] + (S.startCash - bShares * k.c[0]);
+  const benchRet = benchV / S.startCash - 1;
+  G.rounds.push({ r: G.r, startCash: S.startCash, cash: finalV, trades: S.trades, benchEnd: benchV, ret, benchRet });
+  G.cash = finalV;
+  drawAll();
+  showSettle(S.scen, ret, benchRet, finalV - benchV, noAction);
+}
+function roundFlags(scen, trades) {
+  const F = [];
+  const userT = trades.filter(t => !t.forced);
+  const buys = userT.filter(t => t.action.includes("买入") || t.action.includes("加仓"));
+  const sells = userT.filter(t => t.action.includes("卖出") || t.action.includes("清仓"));
+  const chase = buys.filter(t => t.chase);
+  const panic = sells.filter(t => t.pct <= -3.5);
+  const cutLoss = sells.filter(t => t.cost && t.price < t.cost * 0.95);
+  if (userT.length === 0) F.push(["good", "本局观望"]);
+  if (chase.length) F.push(["bad", `追高买入 ×${chase.length}`]);
+  if (panic.length) F.push(["bad", `恐慌日卖出 ×${panic.length}`]);
+  if (cutLoss.length) F.push(["bad", `割肉离场 ×${cutLoss.length}`]);
+  if (buys.some(t => t.allIn)) F.push(["bad", "一把梭"]);
+  if (!F.length) F.push(["good", "无典型偏差"]);
+  return F;
+}
+function showSettle(scen, ret, benchRet, diff, noAction) {
+  const k = scen.k;
+  $("st-tag").textContent = `第 ${G.r + 1} / ${ROUNDS} 局 · 结算`;
+  $("st-name").textContent = scen.name;
+  $("st-story").textContent = scen.story;
+  $("st-meta").textContent = `${scen.sector} · ${scen.period} · ${S.len} 个交易日 · ${scen.vol}`;
+  $("st-ret").textContent = fmtP(ret * 100);
+  $("st-ret").className = "v " + cls(ret);
+  $("st-bench").textContent = fmtP(benchRet * 100);
+  $("st-bench").className = "v " + cls(benchRet);
+  $("st-tax-k").textContent = noAction ? "踏空差额（本局）" : (diff < 0 ? "情绪税（本局）" : "跑赢躺平");
+  $("st-tax").textContent = (diff < 0 ? "-" : "+") + fmtW(Math.abs(diff)).replace("+", "");
+  $("st-tax").className = "v " + cls(diff);
+  $("st-flags").innerHTML = roundFlags(scen, S.trades).map(f => `<span class="flag ${f[0]}">${f[1]}</span>`).join("");
+  $("btnNextRound").textContent = G.r + 1 >= ROUNDS ? "查看总报告 →" : "进入下一局 →";
+  $("settle").classList.add("on");
+  updateSegBar();
+}
+$("btnNextRound").onclick = () => {
+  $("settle").classList.remove("on");   // 进下一局或总报告前，先关掉结算浮层
+  G.r++;
+  if (G.r >= ROUNDS) showReport();
+  else startRound();
+};
+
+/* ============ 渲染 ============ */
+function drawAll() { updateSegBar(); drawQuote(); drawAccount(); drawActions(); drawNews(); drawChart(); }
+function updateSegBar() {
+  $("segNum").textContent = `第 ${G.r + 1} / ${ROUNDS} 局`;
+  $("segRest").textContent = S.done ? "已结算" : `本局剩 ${S.len - 1 - S.i} 天`;
+  $("segTrack").innerHTML = Array.from({length: ROUNDS}, (_, w) =>
+    `<div class="seg-dot ${w === G.r ? "cur" : w < G.r ? "done" : ""}"></div>`).join("");
+}
+function drawQuote() {
+  const k = S.scen.k, i = S.i;
+  $("q-name").textContent = `${S.scen.name} · ${S.scen.sector}`;
+  $("q-date").textContent = k.dates[i];
+  const px = k.c[i], pc = i > 0 ? k.c[i-1] : k.o[0];
+  $("q-px").textContent = px.toFixed(2);
+  const pct = k.pct[i] ?? (px/pc-1)*100;
+  $("q-pc").textContent = fmtP(pct);
+  $("q-pc").className = "pc " + cls(pct);
+}
+function drawAccount() {
+  const t = total(), ret = (t/S.startCash - 1) * 100, lv = posLevel();
+  $("a-total").textContent = "¥" + Math.round(t).toLocaleString();
+  const badge = $("posBadge");
+  badge.textContent = ["空仓", "半仓", "满仓"][lv];
+  badge.className = "pos-badge" + (lv ? " lv" + lv : "");
+  $("a-ret").textContent = fmtP(ret) + "（本局 · 期初 " + fmtW(S.startCash) + "）";
+  $("a-ret").className = "ret " + cls(ret);
+  $("a-cash").textContent = Math.round(S.cash).toLocaleString();
+  $("a-shares").textContent = S.shares ? S.shares.toLocaleString() + " 股" : "—";
+  $("a-cost").textContent = S.shares ? S.cost.toFixed(2) : "—";
+  const fl = S.shares ? (price() - S.cost) * S.shares : 0;
+  $("a-float").textContent = S.shares ? (fl>=0?"+":"") + Math.round(fl).toLocaleString() : "—";
+  $("a-float").className = "v " + (S.shares ? cls(fl) : "");
+}
+function drawActions() {
+  const level = posLevel();
+  const b1 = $("btnHalf"), b2 = $("btnFull"), bs = $("btnSellHalf"), bc = $("btnClear");
+  /* 买入 / 卖出 两列永远并列，按档位切换可用性 */
+  b1.textContent = level === 1 ? "加仓至满仓" : "买入半仓";
+  b2.textContent = "满仓买入";
+  bs.textContent = "卖出半仓";
+  bc.textContent = "清仓";
+  b1.disabled = S.done || level === 2 || (level === 1 && S.cash < price() * 100);
+  b2.disabled = S.done || level !== 0;
+  bs.disabled = S.done || level !== 2;   // 半仓档没有"再卖一半"，只有清仓
+  bc.disabled = S.done || level === 0;
+}
+function drawNews() {
+  const news = S.scen.news.filter(n => n[0] <= S.scen.k.dates[S.i]);
+  const prevCount = $("newsList").children.length;
+  if (news.length > prevCount && prevCount > 0 || (news.length > 0 && prevCount === 0 && S.i > 0)) {
+    const n = news[news.length - 1];
+    const f = $("newsFlash");
+    f.hidden = false;
+    f.innerHTML = "<b style='font-family:var(--mono);color:var(--gold)'>" + n[0] + "</b>　" + n[1];
+  } else if (news.length > 0 && prevCount === 0 && S.i === 0) {
+    // 开局不弹 flash，只在列表静默展示
+  }
+  /* 最新一条走顶部 flash；开局日不弹 flash，列表也不预留（否则首条资讯被吞） */
+  const drop = S.i === 0 ? 0 : 1;
+  const NTAG = { "行情快报": "nt-q", "大V观点": "nt-v", "国际视野": "nt-i", "场外杂谈": "nt-n" };
+  $("newsList").innerHTML = news.slice(0, news.length - drop).reverse().map(n => {
+    const m = n[1].match(/^(大V观点|国际视野|场外杂谈|行情快报)\s*\|/);
+    const tag = m ? `<span class="ntag ${NTAG[m[1]]}">${m[1]}</span>` : "";
+    const body = m ? n[1].replace(m[0], "").trim() : n[1];
+    return `<div class="news-item"><b>${n[0]}</b>${tag}${body}</div>`;
+  }).join("");
+}
+
+/* ============ K线图 ============ */
+const chart = $("chart");
+const ctx = chart.getContext("2d");
+function drawChart() {
+  const P = PAL();
+  const k = S.scen.k, lb = S.scen.lb || null, i = S.i;
+  const W = chart.clientWidth, H = 380, dpr = window.devicePixelRatio || 1;
+  chart.width = W * dpr; chart.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  /* 灰色区 = 入场前约一个月K线（仅供判断）；右侧彩色区 = 可交易窗口 */
+  const N0 = lb ? lb.dates.length : 0;
+  const wStart = Math.max(0, i - 49);          // 窗口内最多展示最近 50 根
+  const N = N0 + (i - wStart + 1);
+  const RIGHT = 64, L = 8, MARK_H = 26;        // MARK_H = 底部买卖标记条高度
+  const plotW = W - RIGHT - L, plotH = H - 26 - MARK_H - 6;
+  const cw = plotW / (N + 4);
+  const X = slot => L + slot * cw + cw / 2;    // slot: 0..N0-1 灰区, N0.. 对应窗口日 wStart..
+  let lo = Infinity, hi = -Infinity;
+  if (lb) for (let j = 0; j < lb.l.length; j++) { lo = Math.min(lo, lb.l[j]); hi = Math.max(hi, lb.h[j]); }
+  for (let j = wStart; j <= i; j++) { lo = Math.min(lo, k.l[j]); hi = Math.max(hi, k.h[j]); }
+  const pad = Math.max(0.02, (hi - lo) * 0.08); lo -= pad; hi += pad;
+  const Y = p => plotH - (p - lo) / (hi - lo) * plotH;
+
+  ctx.strokeStyle = P.grid; ctx.fillStyle = P.gray;
+  ctx.font = "11px -apple-system, 'PingFang SC', sans-serif"; ctx.textAlign = "left";
+  for (let g = 0; g <= 4; g++) {
+    const p = lo + (hi - lo) * g / 4, y = Y(p);
+    ctx.beginPath(); ctx.moveTo(L, y); ctx.lineTo(W - RIGHT, y); ctx.stroke();
+    ctx.fillText(p >= 1000 ? Math.round(p) : p.toFixed(p >= 100 ? 1 : 2), W - RIGHT + 8, y + 4);
+  }
+
+  /* 灰区K线 */
+  if (lb) for (let j = 0; j < lb.dates.length; j++) {
+    const o = lb.o[j], c = lb.c[j], h = lb.h[j], l = lb.l[j], x = X(j);
+    ctx.strokeStyle = P.axis; ctx.fillStyle = P.axis2;
+    ctx.beginPath(); ctx.moveTo(x, Y(h)); ctx.lineTo(x, Y(l)); ctx.stroke();
+    const bw = Math.max(2, cw * 0.62);
+    ctx.fillRect(x - bw/2, Y(Math.max(o, c)), bw, Math.max(1.5, Y(Math.min(o, c)) - Y(Math.max(o, c))));
+  }
+  /* 分隔线 */
+  if (N0) {
+    const xd = X(N0) - cw / 2;
+    ctx.setLineDash([3, 4]); ctx.strokeStyle = P.tintSoft;
+    ctx.beginPath(); ctx.moveTo(xd, 6); ctx.lineTo(xd, plotH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = P.tintMid; ctx.font = "10px -apple-system, 'PingFang SC', sans-serif";
+    ctx.textAlign = "left"; ctx.fillText("入场 →", xd + 5, 14);
+    ctx.textAlign = "right"; ctx.fillStyle = P.axis3;
+    ctx.fillText(`入场前 ${N0} 个交易日（不可交易）`, xd - 5, 14);
+  }
+
+  /* 日期刻度 */
+  ctx.textAlign = "center"; ctx.fillStyle = P.gray; ctx.font = "11px -apple-system, 'PingFang SC', sans-serif";
+  const nWin = i - wStart + 1;
+  if (N0) ctx.fillText(lb.dates[0].slice(5), X(0), H - 8);
+  for (let g = 0; g < nWin; g += Math.ceil(nWin / 6)) {
+    const j = wStart + g;
+    if (k.dates[j]) ctx.fillText(k.dates[j].slice(5), X(N0 + g), H - 8);
+  }
+
+  /* 窗口K线（彩色） */
+  for (let j = wStart; j <= i; j++) {
+    const o = k.o[j], c = k.c[j], h = k.h[j], l = k.l[j];
+    const upDay = c >= o, col = upDay ? P.up : P.down;
+    const x = X(N0 + (j - wStart));
+    ctx.strokeStyle = col; ctx.fillStyle = col;
+    ctx.beginPath(); ctx.moveTo(x, Y(h)); ctx.lineTo(x, Y(l)); ctx.stroke();
+    const bw = Math.max(2, cw * 0.62);
+    ctx.fillRect(x - bw/2, Y(Math.max(o, c)), bw, Math.max(1.5, Y(Math.min(o, c)) - Y(Math.max(o, c))));
+  }
+
+  /* 成交量柱：叠加在价格区底部（Robinhood/富途画法，半透明不抢主线） */
+  if (k.v) {
+    let vmax = 0;
+    for (let j = wStart; j <= i; j++) vmax = Math.max(vmax, k.v[j]);
+    if (vmax > 0) {
+      const vh = plotH * 0.18;
+      const bw = Math.max(2, cw * 0.62);
+      for (let j = wStart; j <= i; j++) {
+        const upDay = k.c[j] >= k.o[j];
+        const x = X(N0 + (j - wStart));
+        const h = Math.max(1, k.v[j] / vmax * vh);
+        ctx.fillStyle = upDay ? P.legendUp : P.legendDown;
+        ctx.fillRect(x - bw/2, plotH - h, bw, h);
+      }
+      ctx.fillStyle = P.axis3; ctx.font = "9px -apple-system, 'PingFang SC', sans-serif";
+      ctx.textAlign = "left"; ctx.fillText("成交量", L + 2, plotH - vh - 4);
+    }
+  }
+
+  const last = k.c[i];
+  ctx.setLineDash([4, 4]); ctx.strokeStyle = P.dash;
+  ctx.beginPath(); ctx.moveTo(L, Y(last)); ctx.lineTo(W - RIGHT, Y(last)); ctx.stroke();
+  ctx.setLineDash([]);
+  const chipUp = i > 0 && last >= k.c[i-1];
+  ctx.fillStyle = chipUp ? P.up : P.down;
+  ctx.fillRect(W - RIGHT + 2, Math.max(2, Y(last) - 9), RIGHT - 6, 18);
+  ctx.fillStyle = P.chipInk; ctx.textAlign = "left";
+  ctx.fillText(last.toFixed(2), W - RIGHT + 8, Math.max(14, Y(last) + 4));
+
+  /* 成交标记条：画在K线下方的独立标记带里。每个交易日聚合成一个买标记 + 一个卖标记，
+     四类操作四种图形：买入半仓=空心▲ · 满仓/加满=实心▲ · 卖出半仓=空心▼ · 清仓=实心◆ · 强平=空心◆ */
+  const stripY = plotH + 15;
+  ctx.strokeStyle = P.grid2;
+  ctx.beginPath(); ctx.moveTo(L, plotH + 3); ctx.lineTo(W - RIGHT, plotH + 3); ctx.stroke();
+  const opType = t => t.action.includes("买入") || t.action.includes("加仓")
+    ? (t.action === "买入半仓" ? "bh" : "bf")
+    : (t.forced ? "xf" : t.action === "卖出半仓" ? "sh" : "cl");
+  const RANK = { bf: 2, bh: 1, xf: 3, cl: 2, sh: 1 };   // 同日同向取更强操作
+  const mTrades = S.trades.filter(t => t.i >= wStart && t.shares > 0);
+  const byDayM = {};
+  mTrades.forEach(t => {
+    const d = byDayM[t.i] ||= { buy: null, sell: null };
+    const ty = opType(t), isBuy = ty[0] === "b";
+    const side = isBuy ? "buy" : "sell";
+    if (!d[side] || RANK[ty] > RANK[d[side]]) d[side] = ty;
+  });
+  const MARK = {
+    bh: { fill: P.upSoft, hollow: true,  up: true },   // 买入半仓
+    bf: { fill: P.upSoft, hollow: false, up: true },   // 满仓买入/加仓至满仓
+    sh: { fill: P.downSoft, hollow: true,  up: false },  // 卖出半仓
+    cl: { fill: P.downSoft, hollow: false, up: false },  // 清仓
+    xf: { fill: P.tint, hollow: true,  up: false },  // 强制平仓
+  };
+  Object.keys(byDayM).forEach(day => {
+    const x = X(N0 + (+day - wStart));
+    ["buy", "sell"].forEach(side => {
+      const ty = byDayM[day][side];
+      if (!ty) return;
+      const m = MARK[ty], r = m.hollow ? 5 : 6.5;
+      // 细虚线从成交价对位到标记条
+      const tr = mTrades.find(t => +t.i === +day && opType(t) === ty);
+      ctx.setLineDash([2, 4]);
+      ctx.strokeStyle = m.fill + "4d";
+      ctx.beginPath(); ctx.moveTo(x, Y(tr.price)); ctx.lineTo(x, m.up ? stripY + 8 : stripY - 8); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      if (m.up) { ctx.moveTo(x, stripY - r); ctx.lineTo(x - r, stripY + r * 0.8); ctx.lineTo(x + r, stripY + r * 0.8); }
+      else { ctx.moveTo(x, stripY + r); ctx.lineTo(x - r, stripY - r * 0.8); ctx.lineTo(x + r, stripY - r * 0.8); }
+      ctx.closePath();
+      if (m.hollow) { ctx.strokeStyle = m.fill; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1; }
+      else { ctx.fillStyle = m.fill; ctx.fill(); }
+    });
+  });
+  if (mTrades.length) {
+    ctx.font = "9px -apple-system, 'PingFang SC', sans-serif"; ctx.textAlign = "left";
+    ctx.fillStyle = P.legendUp; ctx.fillText("▲买 ▲实心=满仓", L + 2, plotH + 13);
+    ctx.fillStyle = P.legendDown; ctx.fillText("▼卖 ◆清仓 ◇强平", L + 2, plotH + 24);
+  }
+}
+window.addEventListener("resize", () => S && !S.done && drawChart());
+
+/* ============ 总报告 ============ */
+function globalCurve() {
+  const out = [];
+  for (const rd of G.rounds) {
+    const k = G.deck[rd.r].k;
+    let c = rd.startCash, sh = 0, cost = 0;
+    const byDay = {};
+    rd.trades.forEach(t => { (byDay[t.i] ||= []).push(t); });
+    for (let j = 0; j < k.c.length; j++) {
+      (byDay[j] || []).forEach(t => {
+        const p = t.price;
+        if (t.action.includes("买入") || t.action.includes("加仓")) {
+          cost = (cost * sh + t.shares * p) / (sh + t.shares); sh += t.shares; c -= t.shares * p;
+        } else { c += t.shares * p; sh = 0; cost = 0; }
+      });
+      out.push(c + sh * k.c[j]);
+    }
+  }
+  return out;
+}
+function benchSeriesGlobal() {
+  const out = [];
+  for (const rd of G.rounds) {
+    const k = G.deck[rd.r].k;
+    const bShares = Math.floor(rd.startCash / k.c[0] / 100) * 100;
+    const leftover = rd.startCash - bShares * k.c[0];   // 整手取整后剩余的现金
+    for (let j = 0; j < k.c.length; j++) out.push(leftover + bShares * k.c[j]);
+  }
+  return out;
+}
+
+function showReport() {
+  show("screen-report");
+  const userT = G.allTrades;
+  const finalV = G.cash;
+  const benchV = G.rounds.reduce((a, r) => a + r.benchEnd, 0);
+  const userRet = (finalV / CAP - 1) * 100;
+  const benchRet = (benchV / CAP - 1) * 100;
+  const tax = finalV - benchV;
+
+  const curve = globalCurve();
+  let peak = curve[0], mdd = 0;
+  curve.forEach(v => { peak = Math.max(peak, v); mdd = Math.max(mdd, (peak - v) / peak); });
+
+  const buys = userT.filter(t => t.action.includes("买入") || t.action.includes("加仓"));
+  const sells = userT.filter(t => t.action.includes("卖出") || t.action.includes("清仓"));
+  const chase = buys.filter(t => t.chase);
+  const panic = sells.filter(t => t.pct <= -3.5);
+  const cutLoss = sells.filter(t => t.cost && t.price < t.cost * 0.95);
+  const soldFly = sells.filter(t => {
+    const k = G.deck[t.r].k;
+    const fut = k.c.slice(t.i + 1, t.i + 11);
+    return fut.length && Math.max(...fut) >= t.price * 1.10 && t.price >= t.cost * 0.98;
+  });
+  const allIn = buys.some(t => t.allIn);
+  const disposal = cutLoss.length > 0 && soldFly.length > 0;
+  const noTrade = userT.length === 0;
+
+  /* 评分：62 基础分 + 相对躺平的收益差（±20，温和）- 行为偏差（封顶 -12）± 回撤/耐心修正 */
+  let score = 62;
+  score += Math.max(-20, Math.min(20, (userRet - benchRet) * 0.4));
+  const flagPenalty = chase.length * 2.5 + panic.length * 2.5 + soldFly.length * 2 + cutLoss.length * 1.5
+                    + (allIn ? 2 : 0) + (disposal ? 2 : 0);
+  score -= Math.min(12, flagPenalty);
+  if (mdd > 0.15) score -= 4;
+  if (mdd > 0.30) score -= 4;
+  if (G.skipped.size >= 4) score += 2;                       // 懂得空仓等待
+  if (noTrade) score = Math.max(48, Math.min(80, score + 8)); // 全程观望：不奖不重罚
+  score = Math.max(20, Math.min(95, Math.round(score)));
+  if (!Number.isFinite(score)) score = 50;
+  const tier = (TIERS.find(t => score >= t[0]) || TIERS[TIERS.length-1])[1];
+
+  $("rp-reveal").innerHTML = `十局终了 · 你经历了　<b>${ROUNDS} 只真实标的</b>　<span style="color:var(--ink-faint)">从低波白马到 20cm 妖股 · 观望 ${G.skipped.size} 局</span>`;
+  $("rp-stats").innerHTML = `
+    <div class="stat"><div class="k">最终资产</div><div class="v">${fmtW(finalV)}</div><div class="d">总收益 ${fmtP(userRet)}</div></div>
+    <div class="stat"><div class="k">十局全躺平基准</div><div class="v ${cls(benchRet)}">${fmtP(benchRet)}</div><div class="d">假设每局都满仓买入并拿到底</div></div>
+    <div class="stat"><div class="k">${tax < 0 ? (noTrade ? "全程踏空成本" : "情绪税") : "逆势阿尔法"}</div><div class="v ${tax<0?"down":"up"}">${fmtW(Math.abs(tax))}</div><div class="d">${tax<0?(noTrade?"零操作少赚的部分，是机会成本而非情绪税":"你比躺平的自己少赚的部分"):"你跑赢躺平自己的部分"}</div></div>
+    <div class="stat"><div class="k">最大回撤</div><div class="v">${(mdd*100).toFixed(1)}%</div><div class="d">全程资产曲线峰谷</div></div>
+    <div class="stat"><div class="k">操作次数</div><div class="v">${userT.length}</div><div class="d">十局平均 ${(userT.length/ROUNDS).toFixed(1)} 次/局</div></div>`;
+
+  /* ---- 逐段可计算复盘：每局交易次数、期初期末资金、收益 vs 躺平、超额、行为标记 ---- */
+  $("rp-rounds").innerHTML = G.rounds.map(rd => {
+    const sc = G.deck[rd.r];
+    const ops = rd.trades.filter(t => !t.forced);
+    const nBuy = ops.filter(t => t.action.includes("买入") || t.action.includes("加仓")).length;
+    const nSell = ops.filter(t => t.action.includes("卖出") || t.action.includes("清仓")).length;
+    const excess = (rd.ret - rd.benchRet) * 100;
+    return `<div class="round-card">
+      <div class="rc-head">
+        <span class="rc-no">第 ${rd.r + 1} 局</span>
+        <span class="rc-name">${sc.name}</span>
+        <span class="rc-meta">${sc.sector} · ${sc.period} · ${sc.vol}</span>
+        <span class="rc-story">${sc.story}</span>
+      </div>
+      <div class="rc-grid">
+        <div><i>操作次数</i><b>${ops.length}</b><u>买 ${nBuy} / 卖 ${nSell}</u></div>
+        <div><i>期初资金</i><b>${fmtW(rd.startCash)}</b></div>
+        <div><i>期末资金</i><b class="${cls(rd.cash - rd.startCash)}">${fmtW(rd.cash)}</b></div>
+        <div><i>本局收益</i><b class="${cls(rd.ret)}">${fmtP(rd.ret * 100)}</b></div>
+        <div><i>满仓躺平</i><b class="${cls(rd.benchRet)}">${fmtP(rd.benchRet * 100)}</b></div>
+        <div><i>超额</i><b class="${cls(excess)}">${(excess >= 0 ? "+" : "") + excess.toFixed(2)} pp</b></div>
+      </div>
+      <div class="rc-flags">${roundFlags(sc, rd.trades).map(f => `<span class="flag ${f[0]}">${f[1]}</span>`).join("")}</div>
+    </div>`;
+  }).join("");
+
+  const F = [];
+  if (chase.length) F.push(["bad", `追高买入 ×${chase.length}`]);
+  if (panic.length) F.push(["bad", `恐慌日卖出 ×${panic.length}`]);
+  if (cutLoss.length) F.push(["bad", `割肉离场 ×${cutLoss.length}`]);
+  if (soldFly.length) F.push(["bad", `卖飞 ×${soldFly.length}`]);
+  if (allIn) F.push(["bad", "开局一把梭"]);
+  if (disposal) F.push(["bad", "处置效应：卖盈持亏"]);
+  if (noTrade) F.push(["good", "十局全程观望，零操作"]);
+  if (!F.length) F.push(["good", "未检出典型行为偏差"]);
+  $("rp-flags").innerHTML = F.map(f => `<span class="flag ${f[0]}">${f[1]}</span>`).join("");
+  $("rp-tier").textContent = tier + " · " + score + " 分";
+  $("rp-tiers").innerHTML = `<span class="lab">评级阶梯</span>` + TIERS.map(([min, name]) =>
+    `<span class="tl ${name === tier ? "cur" : ""}">${name}${name === tier ? " · " + score : ""}</span>`).join("");
+
+  /* ---- 规则引擎总结：全部由可计算数据生成，不做叙事性猜测 ---- */
+  const lines = [];
+  lines.push(`十局共操作 ${userT.length} 次（买入 ${buys.length} · 卖出 ${sells.length}），平均每局 ${(userT.length / ROUNDS).toFixed(1)} 次；观望 ${G.skipped.size} 局${noTrade ? "（全程零操作）" : ""}。`);
+  if (userT.length) {
+    const allInN = buys.filter(t => t.allIn).length;
+    lines.push(`行为标记统计：追高买入 ${chase.length} · 恐慌日卖出 ${panic.length} · 止损离场 ${cutLoss.length} · 卖飞 ${soldFly.length}${allInN ? ` · 一把梭 ${allInN}` : ""}${disposal ? " · 处置效应（卖盈持亏）" : ""}。`);
+    const best = G.rounds.reduce((a, b) => b.ret > a.ret ? b : a);
+    const worst = G.rounds.reduce((a, b) => b.ret < a.ret ? b : a);
+    lines.push(`最佳一局：第 ${best.r + 1} 局 ${G.deck[best.r].name} ${fmtP(best.ret * 100)}（躺平 ${fmtP(best.benchRet * 100)}）；最差一局：第 ${worst.r + 1} 局 ${G.deck[worst.r].name} ${fmtP(worst.ret * 100)}（躺平 ${fmtP(worst.benchRet * 100)}）。`);
+  }
+  const excess = userRet - benchRet;
+  lines.push(`对比躺平基准：总收益 ${fmtP(userRet)} − 躺平 ${fmtP(benchRet)} = 超额 ${(excess >= 0 ? "+" : "") + excess.toFixed(2)} pp；金额差 ${fmtW(tax)}（${tax < 0 ? "情绪税/踏空成本" : "逆势阿尔法"}）${userT.length && tax < 0 ? `，平均每次操作对应 ${fmtW(-tax / Math.max(1, userT.length))}` : ""}。`);
+  lines.push(`最大回撤 ${(mdd * 100).toFixed(1)}% · 最终资产 ${fmtW(finalV)}。综合评级【${tier} · ${score} 分】——评分 = 62 基础分 ± 收益差 − 行为偏差（封顶 -12）± 回撤修正，明细见上方逐段卡片。`);
+  typewriter($("ai-text"), lines.join("\n\n"));
+
+  /* ---- 实测 MBTI（四维度从行为算出） ---- */
+  function measureMBTI() {
+    const buys2 = buys;
+    const maxPos = buys2.some(t => t.action === "满仓买入" || t.action === "加仓至满仓") ? 1 : (buys2.length ? 0.55 : 0);
+    const r = Math.min(1, maxPos + (mdd > 0.12 && maxPos > 0 ? 0.15 : 0));
+    const s = Math.min(1, userT.length / 8);
+    const nd = userT.filter(t => t.nearNews).length;
+    const iScore = userT.length ? nd / userT.length : 0.5;
+    const profitSells = sells.filter(t => t.cost && t.price > t.cost * 1.05).length;
+    const p = sells.length ? Math.min(1, soldFly.length * 0.5 + profitSells * 0.25) : 0.45;
+    const dims = { R: r, S: s, I: iScore, P: p };
+    const letters = DIMS.map(d => dims[d.key] >= 0.5 ? d.hi : d.lo).join("");
+    const self = selfMBTI();
+    const drift = DIMS.map((d, idx) => {
+      const sl = self[idx], ml = letters[idx];
+      if (sl === "?") return { dim: d.name, self: sl, meas: ml, flip: false,
+        text: `${d.name}：自评未作答（跳过）— 实测 ${ml}（${ml === d.hi ? d.hiName : d.loName}）` };
+      return { dim: d.name, self: sl, meas: ml, flip: sl !== ml,
+        text: sl === ml
+          ? `${d.name}：${sl}（${sl === d.hi ? d.hiName : d.loName}）— 自评与实测一致`
+          : `${d.name}：自评 ${sl}（${sl === d.hi ? d.hiName : d.loName}）→ 实测 ${ml}（${ml === d.hi ? d.hiName : d.loName}）` };
+    });
+    return { dims, letters, self, drift, flips: drift.filter(x => x.flip).length };
+  }
+  const mbti = measureMBTI();
+
+  drawCert(score, tier, userRet, benchRet, tax, mdd, curve, mbti,
+    lines.join("\n\n"),
+    G.rounds.map(rd => ({ n: rd.r + 1, name: G.deck[rd.r].name, ret: rd.ret * 100, bench: rd.benchRet * 100 })));
+  requestAI(userRet, benchRet, tax, mdd, { chase: chase.length, panic: panic.length, cutLoss: cutLoss.length, soldFly: soldFly.length, allIn, disposal }, mbti);
+
+  /* ---- 自动存档：登录用户把本次体检写入历史战绩 ---- */
+  /* AI 深度分析是异步的：存档先行，AI 返回后通过 /api/save_ai 补写进同一条 detail */
+  aiResult = null; aiSavePending = false;
+  if (AUTH.token) {
+    api("save_game", {
+      token: AUTH.token,
+      summary: { score, tier, final_assets: Math.round(finalV), total_ret_pct: +userRet.toFixed(2),
+                 bench_ret_pct: +benchRet.toFixed(2), tax_yuan: Math.round(tax), mdd_pct: +(mdd * 100).toFixed(1),
+                 trades: userT.length, mbti_self: mbti.self, mbti_measured: mbti.letters,
+                 mbti_name: mbtiType(mbti.letters).name },
+      detail: { rounds: G.rounds.map(rd => ({ r: rd.r + 1, name: G.deck[rd.r].name,
+                 ret_pct: +(rd.ret * 100).toFixed(2), bench_pct: +(rd.benchRet * 100).toFixed(2),
+                 ops: rd.trades.filter(t => !t.forced).length })),
+                flags: { chase: chase.length, panic: panic.length, cutLoss: cutLoss.length, soldFly: soldFly.length },
+                summary: lines.join("\n\n") },
+      quiz: quizAns,
+    }).then(d => {
+      if (!d.ok) return;
+      $("rp-save").textContent = "✓ 已存入「" + AUTH.name + "」的战绩档案";
+      if (aiResult) pushAi();            // AI 已先返回 → 立即补写
+      else aiSavePending = true;         // AI 后到 → renderMBTI 里补写
+    }).catch(() => {});
+  } else {
+    $("rp-save").textContent = "游客模式 · 战绩不保存（登录后自动存档）";
+  }
+}
+
+/* ---- AI 结果补写进最近一次历史战绩（异步竞态协调） ---- */
+let aiResult = null, aiSavePending = false;
+function pushAi() {
+  if (!aiResult || !AUTH.token) return;
+  api("save_ai", { token: AUTH.token, ai: aiResult }).catch(() => {});
+}
+
+function typewriter(el, text, done) {
+  el.innerHTML = "";
+  const caret = document.createElement("span"); caret.className = "caret";
+  el.appendChild(caret);
+  let i = 0;
+  const step = () => {
+    if (i >= text.length) { caret.remove(); if (done) done(); return; }
+    caret.before(document.createTextNode(text[i++]));
+    setTimeout(step, "，。；：\n".includes(text[i-1]) ? 12 : 8);
+  };
+  step();
+}
+
+/* ---- AI MBTI ---- */
+function requestAI(userRet, benchRet, tax, mdd, flags, mbti) {
+  const payload = {
+    scenario: { mode: "十局十标的 · 真实历史行情", sectors: G.deck.map(s => s.sector) },
+    result: { user_return_pct: +userRet.toFixed(2), buyhold_return_pct: +benchRet.toFixed(2),
+              tax_yuan: Math.round(tax), max_drawdown_pct: +(mdd*100).toFixed(1), trades: G.allTrades.length },
+    flags,
+    mbti: {
+      dims_desc: "R=B梭哈型/C稳健型(风险), S=Q快枪型/P蛰伏型(频率), I=N消息型/F信仰型(信息), P=T拿不住型/H死扛型(盈亏)",
+      self_code: mbti.self, measured_code: mbti.letters,
+      measured_dims: mbti.dims, drift: mbti.drift, drift_count: mbti.flips,
+      self_answers: QUIZ.map((q, i) => {
+        const d = DIMS.find(x => x.key === q.d);
+        return { dim: d.name, question: q.q, self_score: quizAns[i] === -1 ? null : quizAns[i] };
+      }),
+    },
+    rounds: G.rounds.map(rd => {
+      const sc = G.deck[rd.r];
+      return {
+        round: rd.r + 1, stock: sc.name, sector: sc.sector, period: sc.period, story: sc.story, vol: sc.vol,
+        round_ret_pct: +(rd.ret * 100).toFixed(2), bench_ret_pct: +(rd.benchRet * 100).toFixed(2),
+        skipped: rd.trades.filter(t => !t.forced).length === 0,
+        actions: rd.trades.map(a => ({ date: a.date, action: a.action, price: a.price, day_change_pct: a.pct })),
+      };
+    }),
+  };
+  const body = $("mbti-body");
+  body.innerHTML = '<span class="caret"></span>';
+  fetch("/api/analyze", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    .then(r => r.json())
+    .then(d => renderMBTI(d.mbti, d.source, mbti))
+    .catch(() => renderMBTI(localMBTI(payload), "local", mbti));
+}
+
+function localMBTI(payload) {
+  const f = payload.flags || {};
+  const m = payload.mbti || {};
+  const base = { drift_note: "AI 服务不可用，漂移分析为本地规则版。" };
+  if (payload.result.trades === 0) return Object.assign(base, { mbti_code: m.measured_code || "WAIT", mbti_name: "全程围观党", one_liner: "十局行情看完，一分钱没动——稳，但也白来。",
+    strengths: ["风险控制满分", "心态毫无波澜"], weaknesses: ["没有仓位就没有发言权"], advice: ["下一局试着在低位建半仓"], segment_note: "无" });
+  if (f.chase >= 2) return Object.assign(base, { mbti_code: m.measured_code || "FOMO", mbti_name: "热点追逐者", one_liner: "哪里热闹哪里有你，热闹散场你还没走。",
+    strengths: ["嗅觉敏锐，反应快"], weaknesses: ["买在情绪顶点", "缺少左侧布局耐心"], advice: ["把买入条件写成清单再下单", "设置20日高点距离限制"], segment_note: "无" });
+  if (f.panic >= 1) return Object.assign(base, { mbti_code: m.measured_code || "PANI", mbti_name: "惊弓之鸟", one_liner: "一根大阴线，能把你十年的信仰干碎。",
+    strengths: ["止损果断不恋战"], weaknesses: ["恐慌日卖出常常卖在阶段低点"], advice: ["卖出前强制等待一个交易日"], segment_note: "无" });
+  return Object.assign(base, { mbti_code: m.measured_code || "CALM", mbti_name: "佛系定力王", one_liner: "操作不多，章法尚可，恭喜及格。",
+    strengths: ["不追热点", "操作有纪律"], weaknesses: ["样本少，风格未定型"], advice: ["保持记录交易日志的习惯"], segment_note: "无" });
+}
+
+function renderMBTI(m, source, mbti) {
+  const body = $("mbti-body");
+  const code = mbti ? mbti.letters : m.mbti_code;
+  const t = mbtiType(code);
+  const sec = (title, items) => items && items.length ? `<div class="mbti-sec"><b>${title}</b><ul>${items.map(x => `<li>${x}</li>`).join("")}</ul></div>` : "";
+  const driftHtml = mbti ? `
+    <div class="mbti-sec"><b>自评 vs 实测</b>
+      自评 <span style="font-family:var(--mono);color:var(--ink-dim)">${mbti.self}</span>
+      → 实测 <span style="font-family:var(--mono);color:var(--gold)">${mbti.letters}</span>
+      · 漂移 ${mbti.flips} / ${4 - (mbti.self.match(/\?/g) || []).length} 维
+      <ul>${mbti.drift.map(x => `<li${x.flip ? ' style="color:var(--gold)"' : ''}>${x.text}</li>`).join("")}</ul>
+    </div>` : "";
+  const html = `
+    <div class="mbti-badge">
+      <span class="code">${code}</span>
+      <div><div class="name">${t.name}</div><div class="src">${t.group} · ${source || ""}</div></div>
+    </div>
+    <div class="mbti-sec"><b>人物形象</b>${t.persona}</div>
+    <div class="mbti-sec"><b>类型描述</b>${t.desc}</div>
+    <div class="mbti-sec"><b>总评</b>${m.one_liner}</div>
+    ${driftHtml}
+    ${m.drift_note ? `<div class="mbti-sec"><b>AI 漂移点评</b>${m.drift_note}</div>` : ""}
+    ${sec("优势", m.strengths)}
+    ${sec("不足", m.weaknesses)}
+    ${sec("建议", m.advice)}
+    ${m.segment_note ? `<div class="mbti-sec"><b>关键局点评</b>${m.segment_note}</div>` : ""}`;
+  const plain = `${code} · ${t.name}\n\n${t.persona}\n\n${m.one_liner}`;
+  typewriter(body, plain, () => { body.innerHTML = html; });
+  if (certData) {
+    // 合并而非覆盖：保留实测 letters/self/drift，叠加 AI 点评字段
+    certData.mbti = Object.assign({}, mbti, m);
+    certData.selfCode = mbti ? mbti.self : "";
+    certData.typeName = t.name;
+    renderCert();
+  }
+  /* AI 是异步返回的：存档先落库（save_game），AI 到达后补写进最近一次 detail */
+  aiResult = { code, name: t.name, source: source || "local", one_liner: m.one_liner || "",
+    drift_note: m.drift_note || "", strengths: m.strengths || [], weaknesses: m.weaknesses || [],
+    advice: m.advice || [], segment_note: m.segment_note || "" };
+  if (aiSavePending) { aiSavePending = false; pushAi(); }
+}
+
+/* ============ 证书（长图：曲线 + 数据 + 十局明细 + 体检总评 + AI 点评） ============ */
+let certData = null;
+function drawCert(score, tier, userRet, benchRet, tax, mdd, curve, mbti, summary, roundRows) {
+  certData = { score, tier, userRet, benchRet, tax, mdd, curve, mbti, selfCode: mbti ? mbti.self : "",
+               summary: summary || "", roundRows: roundRows || [] };
+  return renderCert();
+}
+function renderCert() {
+  const { score, tier, userRet, benchRet, tax, mdd, curve, mbti, summary, roundRows } = certData;
+  const P = PAL();
+  const cv = $("cert"), c = cv.getContext("2d");
+  const W = 750;
+  const FS = "px -apple-system,'PingFang SC',sans-serif", FM = FS;   // 苹果式：数字也用同一套字体（tnum）
+  /* 中文逐字折行（canvas 未定高时 measureText 同样可用） */
+  const wrap = (text, maxW, font) => {
+    c.font = font; const out = [];
+    for (const para of String(text).split("\n")) {
+      let line = "";
+      for (const ch of para) {
+        if (c.measureText(line + ch).width > maxW && line) { out.push(line); line = ch; }
+        else line += ch;
+      }
+      out.push(line);
+    }
+    return out;
+  };
+
+  /* ---- Pass 1：布局。y 游标走一遍收集绘制闭包，算出画布总高 ---- */
+  const ops = []; let y = 0;
+  const at = fn => { const yy = y; ops.push(() => fn(yy)); };
+  const center = (t, color, font, text) => { c.textAlign = "center"; c.fillStyle = color; c.font = font; c.fillText(text, W/2, t); };
+
+  y = 105; at(t => center(t, P.tint, "600 22" + FS, "K 线 时 光 机 · 韭 菜 体 检 中 心"));
+  y = 195; at(t => center(t, P.ink, "700 50" + FS, tier));
+  y = 235; at(t => center(t, P.dim, "16" + FS, `综合评分 ${score} / 100`));
+  y = 315; at(t => center(t, P.ink, "600 30" + FS, "十局真实行情 · 十只真实标的"));
+  y = 347; at(t => center(t, P.gray, "14" + FM, "覆盖主板 / 创业板 / 科创板 · 覆盖低波白马与高波妖股"));
+
+  /* 资产曲线 */
+  const gx = 80, gy = 400, gw = W - 160, gh = 230;
+  const benchSeries = benchSeriesGlobal();
+  const allV = curve.concat(benchSeries);
+  let lo = Math.min(...allV), hi = Math.max(...allV);
+  if (hi === lo) hi = lo + 1;
+  const Y2 = v => gy + gh - (v - lo) / (hi - lo) * gh;
+  const X2 = j => gx + j / Math.max(1, curve.length - 1) * gw;
+  ops.push(() => {
+    c.strokeStyle = P.grid2;
+    for (let g = 0; g <= 3; g++) { const yy = gy + gh*g/3; c.beginPath(); c.moveTo(gx,yy); c.lineTo(gx+gw,yy); c.stroke(); }
+    c.strokeStyle = P.gray; c.lineWidth = 2; c.setLineDash([5,4]);
+    c.beginPath(); benchSeries.forEach((v,j)=> j?c.lineTo(X2(j),Y2(v)):c.moveTo(X2(j),Y2(v))); c.stroke();
+    c.setLineDash([]);
+    c.strokeStyle = P.tint; c.lineWidth = 3;
+    c.beginPath(); curve.forEach((v,j)=> j?c.lineTo(X2(j),Y2(v)):c.moveTo(X2(j),Y2(v))); c.stroke();
+    c.lineWidth = 1;
+  });
+  y = gy - 12; at(t => { c.textAlign = "left"; c.fillStyle = P.gray; c.font = "13" + FS;
+    c.fillText("— 你", gx, t); c.fillText("-- 每局满仓躺平", gx + 64, t); });
+
+  /* 核心数据行 */
+  const rows = [
+    ["总收益", fmtP(userRet), userRet >= 0 ? P.up : P.down],
+    ["十局全躺平", fmtP(benchRet), benchRet >= 0 ? P.up : P.down],
+    [tax < 0 ? "情绪税" : "逆势阿尔法", fmtW(Math.abs(tax)), tax < 0 ? P.upSoft : P.downSoft],
+    ["最大回撤", (mdd*100).toFixed(1)+"%", P.ink],
+    ["操作次数", G.allTrades.length + " 次", P.ink],
+  ];
+  y = 720;
+  rows.forEach(r => {
+    at(t => {
+      c.textAlign = "left"; c.fillStyle = P.dim; c.font = "16" + FS; c.fillText(r[0], 90, t);
+      c.textAlign = "right"; c.font = "700 20" + FM; c.fillStyle = r[2]; c.fillText(r[1], W - 90, t);
+      c.strokeStyle = P.grid2;
+      c.beginPath(); c.moveTo(90, t + 12); c.lineTo(W - 90, t + 12); c.stroke();
+    });
+    y += 48;
+  });
+
+  /* 十局明细（双列） */
+  y += 40; at(t => { c.textAlign = "left"; c.fillStyle = P.tint; c.font = "600 18" + FS; c.fillText("十局明细 · 本局收益 vs 满仓躺平", 90, t); });
+  const rrH = 32, rrY = y;
+  roundRows.forEach((r, idx) => {
+    const x0 = idx % 2 === 0 ? 90 : W / 2 + 24;
+    const yy = rrY + 40 + Math.floor(idx / 2) * rrH;
+    ops.push(() => {
+      c.textAlign = "left"; c.font = "13" + FM; c.fillStyle = P.dim;
+      c.fillText(String(r.n).padStart(2, "0") + " " + r.name, x0, yy);
+      c.textAlign = "right"; c.fillStyle = r.ret >= 0 ? P.up : P.down;
+      c.fillText(fmtP(r.ret), x0 + 150, yy);
+      c.fillStyle = P.gray; c.font = "12" + FM;
+      c.fillText("躺平" + fmtP(r.bench), x0 + 236, yy);
+    });
+  });
+  y = rrY + 40 + Math.ceil(roundRows.length / 2) * rrH + 34;
+
+  /* 体检总评：可计算总结 + AI 点评（AI 返回后 renderMBTI 会再次触发本函数） */
+  at(t => { c.textAlign = "left"; c.fillStyle = P.tint; c.font = "600 18" + FS; c.fillText("体检总评", 90, t); });
+  y += 38;
+  const bodyLines = [];
+  wrap(summary, W - 180, "14" + FS).forEach(ln => bodyLines.push([P.body, ln]));
+  const bullet = (label, items, color) => {
+    if (!items || !items.length) return;
+    bodyLines.push(["", ""]);
+    wrap(label + items.join("；"), W - 180, "14" + FS).forEach(ln => bodyLines.push([color, ln]));
+  };
+  if (mbti && mbti.one_liner) {
+    bodyLines.push(["", ""]);
+    wrap("AI 点评：" + mbti.one_liner, W - 180, "14" + FS).forEach(ln => bodyLines.push([P.tint, ln]));
+  }
+  bullet("优势：", mbti && mbti.strengths, P.downSoft);
+  bullet("不足：", mbti && mbti.weaknesses, P.upSoft);
+  bullet("建议：", mbti && mbti.advice, P.body);
+  bodyLines.forEach(([col, ln]) => {
+    if (!ln) { y += 10; return; }
+    at(t => { c.textAlign = "left"; c.fillStyle = col; c.font = "14" + FS; c.fillText(ln, 90, t); });
+    y += 21;
+  });
+
+  /* MBTI 一行 */
+  y += 18;
+  if (mbti) {
+    at(t => center(t, P.tint, "600 20" + FM,
+      `炒股 MBTI：${mbti.letters}${certData.typeName ? " · " + certData.typeName : ""}${certData.selfCode ? `（自评 ${certData.selfCode}）` : ""}`));
+    y += 44;
+  }
+
+  /* 页脚 */
+  y += 6;
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.16",
+   "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
+   "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
+    at(t => center(t, P.gray, "13" + FS, tx));
+    y += 28;
+  });
+  y += 46;
+  const H = Math.round(y);
+
+  /* ---- Pass 2：定高重置画布，画底色边框，统一绘制 ---- */
+  cv.width = W; cv.height = H;
+  c.fillStyle = P.certBg; c.fillRect(0, 0, W, H);
+  c.strokeStyle = P.certLine; c.lineWidth = 2; c.strokeRect(26, 26, W - 52, H - 52);
+  c.strokeStyle = P.grid2; c.strokeRect(36, 36, W - 72, H - 72);
+  c.lineWidth = 1;
+  ops.forEach(fn => fn());
+}
+$("btnDownload").onclick = () => {
+  const a = document.createElement("a");
+  a.download = "韭菜体检证书_" + (certData ? certData.tier : "report") + ".png";
+  a.href = $("cert").toDataURL("image/png");
+  a.click();
+};
+/* ============ 日/夜主题切换（图表与证书同步重绘） ============ */
+$("btnTheme").onclick = () => {
+  const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  try { localStorage.setItem("tt_theme", t); } catch (e) {}
+  document.documentElement.dataset.theme = t;
+  if (S && !S.done && $("screen-game").classList.contains("on")) drawChart();
+  if (certData && $("screen-report").classList.contains("on")) renderCert();
+};
+$("btnAgain").onclick = () => { show("screen-select"); };
+</script>
+</body>
+</html>
