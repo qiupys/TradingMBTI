@@ -350,7 +350,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-Type", self.MIME.get(ext, "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-cache")
+        # HTML/入口资源一律 no-store：本项目高频迭代，宁可每次全量拉取也不允许浏览器拿旧页
+        self.send_header("Cache-Control", "no-store" if ext in (".html", "") else "no-cache")
         self.end_headers()
         self.wfile.write(body)
 
