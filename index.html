@@ -349,8 +349,10 @@
   .reveal b { color: var(--ink); font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
   .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 14px; margin: 20px 0; }
   #screen-report .stat-grid { grid-template-columns: repeat(5, 1fr); }
-  @media (max-width: 900px) { #screen-report .stat-grid { grid-template-columns: repeat(2, 1fr); } }
-  #screen-histdetail .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 900px) { #screen-report .stat-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
+  #screen-histdetail .stat-grid { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) { #screen-histdetail .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+  #screen-histdetail .report-actions { margin: 20px 0 12px; }
   .stat { background: var(--panel); border-radius: var(--radius); padding: 18px 20px 16px; box-shadow: var(--card-shadow); }
   .stat .k { font-size: 12px; color: var(--ink-faint); }
   .stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 6px; }
@@ -359,9 +361,9 @@
   .flag { font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--fill-2); color: var(--ink-dim); }
   .flag.bad { background: var(--up-fill); color: var(--up); }
   .flag.good { background: var(--down-fill); color: var(--down); }
-  .tier-ladder { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 18px; align-items: center; }
-  .tier-ladder .lab { font-size: 12px; color: var(--ink-faint); margin-right: 4px; }
-  .tier-ladder .tl { font-size: 12px; padding: 6px 14px; border-radius: 999px; background: var(--fill-2); color: var(--ink-faint); transition: .2s var(--ease); }
+  .tier-ladder { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 18px; align-items: center; }
+  .tier-ladder .lab { font-size: 13px; color: var(--ink-faint); margin-right: 4px; }
+  .tier-ladder .tl { font-size: 13px; padding: 9px 18px; border-radius: 999px; background: var(--fill-2); color: var(--ink-faint); transition: .2s var(--ease); }
   .tier-ladder .tl.cur { background: var(--tint); color: #fff; font-weight: 600; }
   .rnd-table { background: var(--panel); border-radius: var(--radius); padding: 16px 20px; margin: 8px 0; box-shadow: var(--card-shadow); }
   .rnd-row { display: grid; grid-template-columns: 150px 1fr 90px 110px; gap: 8px; font-size: 13px; padding: 8px 0;
@@ -550,7 +552,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.21</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.22</span></div>
 </header>
 
 <main class="wrap">
@@ -1474,7 +1476,9 @@ const ctx = chart.getContext("2d");
 function drawChart() {
   const P = PAL();
   const k = S.scen.k, lb = S.scen.lb || null, i = S.i;
-  const W = chart.clientWidth, H = 432, dpr = window.devicePixelRatio || 1;
+  const W = chart.clientWidth, dpr = window.devicePixelRatio || 1;
+  const narrow = W < 680;                       // 窄窗口（单列堆叠）时压缩三段高度，避免图被拉得又窄又长
+  const H = narrow ? 336 : 432;
   chart.width = W * dpr; chart.height = H * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
@@ -1484,9 +1488,9 @@ function drawChart() {
   const wStart = Math.max(0, i - 49);          // 窗口内最多展示最近 50 根
   const N = N0 + (i - wStart + 1);
   const RIGHT = 64, L = 8;                     // 底部买卖标记条独立成带
-  /* 三段式布局：价格主图 / 成交量副图 / 标记带，互不重叠 */
-  const priceTop = 6, priceH = 252;
-  const volTop = priceTop + priceH + 14, volH = 56;
+  /* 三段式布局：价格主图 / 成交量副图 / 标记带，互不重叠；高度随宽度自适应 */
+  const priceTop = 6, priceH = narrow ? 190 : 252;
+  const volTop = priceTop + priceH + 14, volH = narrow ? 42 : 56;
   const stripTop = volTop + volH + 8;
   const plotW = W - RIGHT - L;
   const cw = plotW / (N + 4);
@@ -1525,14 +1529,23 @@ function drawChart() {
     ctx.fillText(`入场前 ${N0} 个交易日（不可交易）`, xd - 5, 14);
   }
 
-  /* 日期刻度 */
+  /* 日期刻度：按像素间距取刻度——标签逐枚测量，与上一枚太近就跳过，窄窗口下不再互相重叠 */
   ctx.textAlign = "center"; ctx.fillStyle = P.gray; ctx.font = "11px -apple-system, 'PingFang SC', sans-serif";
   const nWin = i - wStart + 1;
-  if (N0) ctx.fillText(lb.dates[0].slice(5), X(0), H - 8);
-  for (let g = 0; g < nWin; g += Math.ceil(nWin / 6)) {
+  const tickStep = Math.max(1, Math.ceil(nWin / 6));
+  const ticks = [];
+  if (N0) ticks.push([X(0), lb.dates[0].slice(5)]);
+  for (let g = 0; g < nWin; g += tickStep) {
     const j = wStart + g;
-    if (k.dates[j]) ctx.fillText(k.dates[j].slice(5), X(N0 + g), H - 8);
+    if (k.dates[j]) ticks.push([X(N0 + g), k.dates[j].slice(5)]);
   }
+  let lastTickX = -1e9;
+  ticks.forEach(([tx, txt]) => {
+    const half = ctx.measureText(txt).width / 2;
+    if (tx - lastTickX < half + 22) return;    // 与上一枚标签间距不足，跳过这枚
+    ctx.fillText(txt, tx, H - 8);
+    lastTickX = tx + half;
+  });
 
   /* 窗口K线（彩色） */
   for (let j = wStart; j <= i; j++) {
@@ -1707,19 +1720,31 @@ function showReport() {
   $("rp-tiers").innerHTML = `<span class="lab">评级阶梯</span>` + TIERS.map(([min, name]) =>
     `<span class="tl ${name === tier ? "cur" : ""}">${name}${name === tier ? " · " + score : ""}</span>`).join("");
 
-  /* ---- 规则引擎总结：全部由可计算数据生成，不做叙事性猜测 ---- */
+  /* ---- 规则引擎总结：全部由可计算数据生成，用自然叙述而非公式拼接 ---- */
   const lines = [];
-  lines.push(`十局共操作 ${userT.length} 次（买入 ${buys.length} · 卖出 ${sells.length}），平均每局 ${(userT.length / ROUNDS).toFixed(1)} 次；观望 ${G.skipped.size} 局${noTrade ? "（全程零操作）" : ""}。`);
+  const skipN = G.skipped.size;
+  lines.push(`十局打完，你一共出手 ${userT.length} 次（买入 ${buys.length} 次、卖出 ${sells.length} 次），平均每局 ${(userT.length / ROUNDS).toFixed(1)} 次${skipN ? `；另外有 ${skipN} 局你选择全程观望，一股没碰` : ""}。`);
   if (userT.length) {
     const allInN = buys.filter(t => t.allIn).length;
-    lines.push(`行为标记统计：追高买入 ${chase.length} · 恐慌日卖出 ${panic.length} · 止损离场 ${cutLoss.length} · 卖飞 ${soldFly.length}${allInN ? ` · 一把梭 ${allInN}` : ""}${disposal ? " · 处置效应（卖盈持亏）" : ""}。`);
+    const marks = [];
+    if (chase.length) marks.push(`${chase.length} 次在连涨后追高`);
+    if (panic.length) marks.push(`${panic.length} 次在大跌日恐慌卖出`);
+    if (cutLoss.length) marks.push(`${cutLoss.length} 次割肉离场`);
+    if (soldFly.length) marks.push(`${soldFly.length} 次卖在起飞前`);
+    if (allInN) marks.push(`${allInN} 次开局一把梭`);
+    if (disposal) marks.push("赚的急着卖、亏的死扛（处置效应）");
+    lines.push(marks.length
+      ? `从操作痕迹看，最突出的是${marks.join("、")}。`
+      : "从操作痕迹看，没有检出典型的行为偏差——追高、恐慌、死扛这些坑你都没踩。");
     const best = G.rounds.reduce((a, b) => b.ret > a.ret ? b : a);
     const worst = G.rounds.reduce((a, b) => b.ret < a.ret ? b : a);
-    lines.push(`最佳一局：第 ${best.r + 1} 局 ${G.deck[best.r].name} ${fmtP(best.ret * 100)}（躺平 ${fmtP(best.benchRet * 100)}）；最差一局：第 ${worst.r + 1} 局 ${G.deck[worst.r].name} ${fmtP(worst.ret * 100)}（躺平 ${fmtP(worst.benchRet * 100)}）。`);
+    lines.push(`打得最漂亮的是第 ${best.r + 1} 局 ${G.deck[best.r].name}，拿到 ${fmtP(best.ret * 100)}（躺平是 ${fmtP(best.benchRet * 100)}）；最难熬的是第 ${worst.r + 1} 局 ${G.deck[worst.r].name}，${fmtP(worst.ret * 100)}（躺平 ${fmtP(worst.benchRet * 100)}）。`);
   }
   const excess = userRet - benchRet;
-  lines.push(`对比躺平基准：总收益 ${fmtP(userRet)} − 躺平 ${fmtP(benchRet)} = 超额 ${(excess >= 0 ? "+" : "") + excess.toFixed(2)} pp；金额差 ${fmtW(tax)}（${tax < 0 ? "情绪税/踏空成本" : "逆势阿尔法"}）${userT.length && tax < 0 ? `，平均每次操作对应 ${fmtW(-tax / Math.max(1, userT.length))}` : ""}。`);
-  lines.push(`最大回撤 ${(mdd * 100).toFixed(1)}% · 最终资产 ${fmtW(finalV)}。综合评级【${tier} · ${score} 分】——评分 = 62 基础分 ± 收益差 − 行为偏差（封顶 -12）± 回撤修正，十局明细见上方体检证书。`);
+  lines.push(tax < 0
+    ? `和"每局都满仓拿到底"的那个自己比：你做到 ${fmtP(userRet)}，躺平是 ${fmtP(benchRet)}，差了 ${fmtW(Math.abs(tax))}——这部分就是情绪的价钱${noTrade ? "（全程零操作，属于机会成本而非操作亏损）" : ""}。`
+    : `和"每局都满仓拿到底"的那个自己比：你做到 ${fmtP(userRet)}，躺平只有 ${fmtP(benchRet)}，多赚了 ${fmtW(tax)}（超额 ${(excess >= 0 ? "+" : "") + excess.toFixed(2)} pp）——这是逆势操作真金白银赚出来的 alpha。`);
+  lines.push(`全程最大回撤 ${(mdd * 100).toFixed(1)}%，最终资产定格在 ${fmtW(finalV)}。综合评级【${tier} · ${score} 分】：62 基础分起步，按与躺平的收益差、行为偏差、回撤修正加减而来，十局明细都在上方证书里。`);
   typewriter($("ai-text"), lines.join("\n\n"));
 
   /* ---- 实测 MBTI（四维度从行为算出） ---- */
@@ -2031,7 +2056,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.21",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.22",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
