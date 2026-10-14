@@ -109,6 +109,8 @@
   button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   ::selection { background: var(--sel); }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 22px; }
+  /* header 带 .wrap 类，必须用复合选择器抬高优先级，否则 .wrap 的 padding 会把顶部留白覆盖成 0 */
+  header.wrap { padding: 34px 22px 0; }
   /* 页面顶端一抹品牌渐变（富途/Robinhood 式氛围光），内容区仍保持纯净 */
   body::before { content: ""; position: fixed; inset: 0 0 auto 0; height: 320px; pointer-events: none; z-index: -1;
     background: radial-gradient(120% 100% at 50% 0%, var(--tint-fill) 0%, transparent 70%); }
@@ -508,14 +510,14 @@
 
   /* ---------- 窄屏 / 小窗口适配 ---------- */
   @media (max-width: 900px) {
-    header { padding: 22px 0 0; }
+    header.wrap { padding: 22px 16px 0; }
     .tagline { font-size: 12px; }
     .hero { padding: 28px 24px; }
     .hero h2 { font-size: 22px; }
   }
   @media (max-width: 700px) {
     .wrap { padding: 0 16px; }
-    header { padding: 16px 0 0; }
+    header.wrap { padding: 16px 16px 0; }
     .brand h1 { font-size: 17px; }
     .brand .sub { font-size: 12px; }
     .screen { padding: 18px 0 56px; }
@@ -584,7 +586,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.27</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.28</span></div>
 </header>
 
 <main class="wrap">
@@ -2147,7 +2149,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.27",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.28",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
