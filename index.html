@@ -109,7 +109,7 @@
   /* 数字统一等宽字形——苹果用同一套字体的 tnum，而不是另换等宽字体 */
   .acct .big, .acct .ret, .acct-grid .v, .quote-bar .dt, .quote-bar .px, .quote-bar .pc,
   .seg-bar .seg-num, .seg-bar .rest, .qprog-meta, .stat .v, .settle-grid .v, .rnd-row .v,
-  .rnd-row .b, .rc-no, .rc-grid b, .rc-grid u, .hist-item .t, .hist-item .sc, .hist-item .ret,
+  .rnd-row .b, .hist-item .t, .hist-item .sc, .hist-item .ret,
   .hist-item .mb, .hdd-badge, .self-preview .code, .mbti-badge .code, .log .li, .news-item b,
   .pos-badge, .news-flash, .auth-msg { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
@@ -387,7 +387,7 @@
   .mbti-sec b { display: block; color: var(--ink-faint); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
   .mbti-sec ul { margin: 4px 0 0 20px; }
   .report-actions { margin-top: 0; display: flex; gap: 10px; flex-wrap: wrap; }
-  .cert-block { margin: 24px auto 0; max-width: 750px; }
+  .cert-block { margin: 18px 0 0; }
   .cert-pending { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
     background: var(--panel); border-radius: var(--radius); padding: 64px 24px; box-shadow: var(--card-shadow); }
   .cert-pending b { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
@@ -419,32 +419,19 @@
   .user-chip b { color: var(--ink); font-weight: 600; }
   .rp-save { font-size: 12px; color: var(--ink-faint); margin: 2px 0 8px; min-height: 16px; }
 
-  /* ---------- 逐段复盘卡片 ---------- */
-  .round-card { background: var(--panel); border-radius: var(--radius); padding: 20px 22px; margin: 12px 0; box-shadow: var(--card-shadow); }
-  .rc-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .rc-no { color: var(--ink-faint); font-weight: 600; font-size: 12px; white-space: nowrap; }
-  .rc-name { font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
-  .rc-meta { color: var(--ink-faint); font-size: 11px; }
-  .rc-story { margin-left: auto; color: var(--ink-dim); font-size: 12px; }
-  /* ---------- 十局总览表（总报告，默认折叠详情） ---------- */
+  /* ---------- 十局总览表（历史战绩详情页） ---------- */
   .rounds-sum { background: var(--panel); border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden; }
+  .rounds-sum .rrow.head { padding: 12px 20px 9px; }
   .rrow { display: grid; grid-template-columns: 76px 1fr 100px 100px 84px; gap: 10px; align-items: center;
-          padding: 11px 18px; font-size: 13px; border-bottom: 1px solid var(--line); }
+          padding: 11px 20px; font-size: 13px; border-bottom: 1px solid var(--line); }
   .rrow:last-child { border-bottom: none; }
-  .rrow.head { font-size: 11px; color: var(--ink-faint); padding: 12px 18px 9px; background: var(--fill-2); }
+  .rrow.head { font-size: 11px; color: var(--ink-faint); background: var(--fill-2); }
   .rrow .rr-no { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
   .rrow .rr-name { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .rrow .rr-name i { font-style: normal; font-weight: 400; font-size: 11px; color: var(--ink-faint); margin-left: 8px; }
   .rrow .rr-v, .rrow .rr-ops { text-align: right; font-variant-numeric: tabular-nums; }
   .rrow .rr-ops { color: var(--ink-faint); font-size: 12px; }
   @media (max-width: 760px) { .rrow { grid-template-columns: 60px 1fr 84px 84px 64px; gap: 6px; padding: 10px 14px; font-size: 12px; } }
-  .rc-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 16px 0 4px; }
-  @media (max-width: 760px) { .rc-grid { grid-template-columns: repeat(3, 1fr); } }
-  .rc-grid i { display: block; font-style: normal; font-size: 11px; color: var(--ink-faint); }
-  .rc-grid b { font-size: 15px; font-weight: 600; display: block; margin-top: 4px; }
-  .rc-grid u { display: block; text-decoration: none; font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
-  .rc-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
-  .rc-flags .flag { font-size: 11px; padding: 4px 10px; }
 
   /* ---------- 历史战绩列表 ---------- */
   .hist-item { background: var(--fill-2); border-radius: var(--radius-sm); padding: 16px 18px;
@@ -563,7 +550,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.20</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.21</span></div>
 </header>
 
 <main class="wrap">
@@ -751,15 +738,23 @@
   <section id="screen-report" class="screen">
     <div class="reveal" id="rp-reveal"></div>
     <div class="report-bar">
-      <div class="cert-cap">体检证书将在 AI 深度分析完成后于页面底部自动生成 · 长图保存后可直接转发微信</div>
+      <div class="cert-cap">体检证书将在 AI 深度分析完成后于下方自动生成 · 长图保存后可直接转发微信</div>
       <div class="report-actions">
         <button class="btn primary" id="btnDownload">下载体检证书</button>
         <button class="btn" id="btnAgain">再来一局</button>
         <button class="btn" id="btnHistReport">历史战绩</button>
       </div>
     </div>
+    <!-- 证书全宽展示：紧跟操作栏，AI 深度分析完成后才生成，750 设计宽 2x 超采样，文字清晰可读 -->
+    <div class="cert-block">
+      <div class="cert-pending" id="certPending">
+        <div class="spin"></div>
+        <b>AI 深度分析中，证书生成排队中…</b>
+        <span>分析完成后自动生成专属体检证书（约 20–60 秒），届时可下载保存</span>
+      </div>
+      <canvas id="cert" width="750" height="1300" hidden></canvas>
+    </div>
     <div class="stat-grid" id="rp-stats"></div>
-    <div id="rp-rounds"></div>
     <div class="flags" id="rp-flags"></div>
     <div class="tier-ladder" id="rp-tiers"></div>
     <div class="ai-card">
@@ -770,15 +765,6 @@
     <div class="ai-card" id="mbti-card">
       <h4><span class="dot"></span>AI 深度分析 · 炒股 MBTI</h4>
       <div id="mbti-body"><span class="caret"></span></div>
-    </div>
-    <!-- 证书全宽展示：AI 深度分析完成后才生成，750 设计宽原尺寸渲染，文字清晰可读 -->
-    <div class="cert-block">
-      <div class="cert-pending" id="certPending">
-        <div class="spin"></div>
-        <b>AI 深度分析中，证书生成排队中…</b>
-        <span>分析完成后自动生成专属体检证书（约 20–60 秒），届时可下载保存</span>
-      </div>
-      <canvas id="cert" width="750" height="1300" hidden></canvas>
     </div>
   </section>
 
@@ -959,19 +945,21 @@ function openHistDetail(g) {
     <div class="stat"><div class="k">十局全躺平</div><div class="v ${cls(g.bench_ret_pct)}">${fmtP(g.bench_ret_pct)}</div><div class="d">假设每局都满仓买入并拿到底</div></div>
     <div class="stat"><div class="k">最大回撤</div><div class="v">${(+g.mdd_pct).toFixed(1)}%</div><div class="d">全程资产曲线峰谷</div></div>
     <div class="stat"><div class="k">操作次数</div><div class="v">${g.trades}</div><div class="d">十局平均 ${(g.trades / 10).toFixed(1)} 次/局</div></div>`;
-  $("hdd-rounds").innerHTML = rounds.length ? rounds.map(rd => `
-    <div class="round-card">
-      <div class="rc-head">
-        <span class="rc-no">第 ${rd.r} 局</span>
-        <span class="rc-name">${rd.name}</span>
-      </div>
-      <div class="rc-grid">
-        <div><i>本局收益</i><b class="${cls(rd.ret_pct)}">${fmtP(rd.ret_pct)}</b></div>
-        <div><i>满仓躺平</i><b class="${cls(rd.bench_pct)}">${fmtP(rd.bench_pct)}</b></div>
-        <div><i>超额</i><b class="${cls(rd.ret_pct - rd.bench_pct)}">${((rd.ret_pct - rd.bench_pct) >= 0 ? "+" : "") + (rd.ret_pct - rd.bench_pct).toFixed(2)} pp</b></div>
-        <div><i>操作次数</i><b>${rd.ops}</b></div>
-      </div>
-    </div>`).join("")
+  /* 逐局数据用与全站一致的紧凑总览表：一局一行，不再用大卡片铺开 */
+  $("hdd-rounds").innerHTML = rounds.length ? `
+    <div class="rounds-sum">
+      <div class="rrow head"><span>局</span><span>标的</span><span>本局收益</span><span>vs 躺平</span><span>操作</span></div>
+      ${rounds.map(rd => {
+        const ex = rd.ret_pct - rd.bench_pct;
+        return `<div class="rrow">
+          <span class="rr-no">第 ${rd.r} 局</span>
+          <span class="rr-name">${rd.name}</span>
+          <span class="rr-v ${cls(rd.ret_pct)}">${fmtP(rd.ret_pct)}</span>
+          <span class="rr-v ${cls(ex)}">${(ex >= 0 ? "+" : "") + ex.toFixed(1)} pp</span>
+          <span class="rr-ops">${rd.ops === 0 ? "观望" : rd.ops + " 次"}</span>
+        </div>`;
+      }).join("")}
+    </div>`
     : `<p class="note">这一局的逐局明细没有保存下来，仅显示汇总数据。</p>`;
   const chips = [
     ["追高买入", flags.chase], ["恐慌卖出", flags.panic], ["止损离场", flags.cutLoss], ["卖飞", flags.soldFly],
@@ -1587,54 +1575,48 @@ function drawChart() {
   ctx.fillStyle = P.chipInk; ctx.textAlign = "left";
   ctx.fillText(last.toFixed(2), W - RIGHT + 8, Math.max(14, Y(last) + 4));
 
-  /* 成交标记条：画在K线下方的独立标记带里。每个交易日聚合成一个买标记 + 一个卖标记，
-     四类操作四种图形：买入半仓=空心▲ · 满仓/加满=实心▲ · 卖出半仓=空心▼ · 清仓=实心◆ · 强平=空心◆ */
+  /* 成交标记条：画在K线下方的独立标记带里。按「当日操作后的持仓状态」绘制，每天至多一枚标记：
+     净买入=▲（实心=加至满仓）· 减仓=空心▼ · 清仓=实心▼ · 强平=描边▼。
+     当日买回又卖平（持仓状态没变）不留标记 —— 杜绝同一天▲▼叠成一团 */
   const stripY = stripTop + 12;
   ctx.strokeStyle = P.grid2;
   ctx.beginPath(); ctx.moveTo(L, stripTop); ctx.lineTo(W - RIGHT, stripTop); ctx.stroke();
-  const opType = t => t.action.includes("买入") || t.action.includes("加仓")
-    ? (t.action === "买入半仓" ? "bh" : "bf")
-    : (t.forced ? "xf" : t.action === "卖出半仓" ? "sh" : "cl");
-  const RANK = { bf: 2, bh: 1, xf: 3, cl: 2, sh: 1 };   // 同日同向取更强操作
-  const mTrades = S.trades.filter(t => t.i >= wStart && t.shares > 0);
-  const byDayM = {};
-  mTrades.forEach(t => {
-    const d = byDayM[t.i] ||= { buy: null, sell: null };
-    const ty = opType(t), isBuy = ty[0] === "b";
-    const side = isBuy ? "buy" : "sell";
-    if (!d[side] || RANK[ty] > RANK[d[side]]) d[side] = ty;
+  const isBuyOp = t => t.action.includes("买入") || t.action.includes("加仓");
+  const dayInfo = {};   // i -> { start: 日初持仓, end: 日终持仓, ref: 当日最后一笔成交, forced: 是否含强平 }
+  let cumPos = 0;
+  S.trades.forEach(t => {
+    if (!(t.shares > 0)) return;
+    const d = dayInfo[t.i] ||= { start: cumPos, end: cumPos, ref: null, forced: false };
+    cumPos += isBuyOp(t) ? t.shares : -t.shares;
+    d.end = cumPos; d.ref = t;
+    if (t.forced) d.forced = true;
   });
-  const MARK = {
-    bh: { fill: P.upSoft, hollow: true,  up: true },   // 买入半仓
-    bf: { fill: P.upSoft, hollow: false, up: true },   // 满仓买入/加仓至满仓
-    sh: { fill: P.downSoft, hollow: true,  up: false },  // 卖出半仓
-    cl: { fill: P.downSoft, hollow: false, up: false },  // 清仓
-    xf: { fill: P.tint, hollow: true,  up: false },  // 强制平仓
-  };
-  Object.keys(byDayM).forEach(day => {
-    const x = X(N0 + (+day - wStart));
-    ["buy", "sell"].forEach(side => {
-      const ty = byDayM[day][side];
-      if (!ty) return;
-      const m = MARK[ty], r = m.hollow ? 5 : 6.5;
-      // 细虚线从成交价对位到标记条
-      const tr = mTrades.find(t => +t.i === +day && opType(t) === ty);
-      ctx.setLineDash([2, 4]);
-      ctx.strokeStyle = m.fill + "4d";
-      ctx.beginPath(); ctx.moveTo(x, Y(tr.price)); ctx.lineTo(x, m.up ? stripY + 8 : stripY - 8); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.beginPath();
-      if (m.up) { ctx.moveTo(x, stripY - r); ctx.lineTo(x - r, stripY + r * 0.8); ctx.lineTo(x + r, stripY + r * 0.8); }
-      else { ctx.moveTo(x, stripY + r); ctx.lineTo(x - r, stripY - r * 0.8); ctx.lineTo(x + r, stripY - r * 0.8); }
-      ctx.closePath();
-      if (m.hollow) { ctx.strokeStyle = m.fill; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1; }
-      else { ctx.fillStyle = m.fill; ctx.fill(); }
-    });
+  const drawn = Object.keys(dayInfo).map(Number).filter(day => day >= wStart && dayInfo[day].end !== dayInfo[day].start);
+  drawn.forEach(day => {
+    const d = dayInfo[day], t = d.ref;
+    const x = X(N0 + (day - wStart));
+    const buy = d.end > d.start;
+    let fill, hollow, up;
+    if (d.forced)     { fill = P.tint;     hollow = true;  up = false; }  // 强平
+    else if (buy)     { fill = P.upSoft;   hollow = !(t.action === "满仓买入" || t.action === "加仓至满仓"); up = true; }
+    else if (d.end === 0) { fill = P.downSoft; hollow = false; up = false; }  // 清仓
+    else              { fill = P.downSoft; hollow = true;  up = false; }      // 减仓
+    const r = hollow ? 5 : 6.5;
+    // 细虚线从成交价对位到标记条
+    ctx.setLineDash([2, 4]);
+    ctx.strokeStyle = fill + "4d";
+    ctx.beginPath(); ctx.moveTo(x, Y(t.price)); ctx.lineTo(x, up ? stripY + 8 : stripY - 8); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    if (up) { ctx.moveTo(x, stripY - r); ctx.lineTo(x - r, stripY + r * 0.8); ctx.lineTo(x + r, stripY + r * 0.8); }
+    else { ctx.moveTo(x, stripY + r); ctx.lineTo(x - r, stripY - r * 0.8); ctx.lineTo(x + r, stripY - r * 0.8); }
+    ctx.closePath();
+    if (hollow) { ctx.strokeStyle = fill; ctx.lineWidth = 1.4; ctx.stroke(); ctx.lineWidth = 1; }
+    else { ctx.fillStyle = fill; ctx.fill(); }
   });
-  if (mTrades.length) {
+  if (Object.keys(dayInfo).length) {
     ctx.font = "9px -apple-system, 'PingFang SC', sans-serif"; ctx.textAlign = "left";
-    ctx.fillStyle = P.legendUp; ctx.fillText("▲买 ▲实心=满仓", L + 2, stripY + 12);
-    ctx.fillStyle = P.legendDown; ctx.fillText("▼卖 ◆清仓 ◇强平", L + 2, stripY + 23);
+    ctx.fillStyle = P.legendUp; ctx.fillText("▲买 ▼卖 · 实心=满仓/清仓 · 描边=强平", L + 2, stripY + 12);
   }
 }
 window.addEventListener("resize", () => S && !S.done && drawChart());
@@ -1711,56 +1693,6 @@ function showReport() {
     <div class="stat"><div class="k">最大回撤</div><div class="v">${(mdd*100).toFixed(1)}%</div><div class="d">全程资产曲线峰谷</div></div>
     <div class="stat"><div class="k">操作次数</div><div class="v">${userT.length}</div><div class="d">十局平均 ${(userT.length/ROUNDS).toFixed(1)} 次/局</div></div>`;
 
-  /* ---- 逐段可计算复盘：默认紧凑总览（一局一行），详情默认折叠避免十张大卡把页面撑到 2000px+ ---- */
-  const cardsHtml = G.rounds.map(rd => {
-    const sc = G.deck[rd.r];
-    const ops = rd.trades.filter(t => !t.forced);
-    const nBuy = ops.filter(t => t.action.includes("买入") || t.action.includes("加仓")).length;
-    const nSell = ops.filter(t => t.action.includes("卖出") || t.action.includes("清仓")).length;
-    const excess = (rd.ret - rd.benchRet) * 100;
-    return `<div class="round-card">
-      <div class="rc-head">
-        <span class="rc-no">第 ${rd.r + 1} 局</span>
-        <span class="rc-name">${sc.name}</span>
-        <span class="rc-meta">${sc.sector} · ${sc.period} · ${sc.vol}</span>
-        <span class="rc-story">${sc.story}</span>
-      </div>
-      <div class="rc-grid">
-        <div><i>操作次数</i><b>${ops.length}</b><u>买 ${nBuy} / 卖 ${nSell}</u></div>
-        <div><i>期初资金</i><b>${fmtW(rd.startCash)}</b></div>
-        <div><i>期末资金</i><b class="${cls(rd.cash - rd.startCash)}">${fmtW(rd.cash)}</b></div>
-        <div><i>本局收益</i><b class="${cls(rd.ret)}">${fmtP(rd.ret * 100)}</b></div>
-        <div><i>满仓躺平</i><b class="${cls(rd.benchRet)}">${fmtP(rd.benchRet * 100)}</b></div>
-        <div><i>超额</i><b class="${cls(excess)}">${(excess >= 0 ? "+" : "") + excess.toFixed(2)} pp</b></div>
-      </div>
-      <div class="rc-flags">${roundFlags(sc, rd.trades).map(f => `<span class="flag ${f[0]}">${f[1]}</span>`).join("")}</div>
-    </div>`;
-  }).join("");
-  const sumRows = G.rounds.map(rd => {
-    const sc = G.deck[rd.r];
-    const ops = rd.trades.filter(t => !t.forced);
-    const excess = (rd.ret - rd.benchRet) * 100;
-    return `<div class="rrow" data-r="${rd.r}">
-      <span class="rr-no">第 ${rd.r + 1} 局</span>
-      <span class="rr-name">${sc.name}<i>${sc.vol}</i></span>
-      <span class="rr-v ${cls(rd.ret)}">${fmtP(rd.ret * 100)}</span>
-      <span class="rr-v ${cls(excess)}">${(excess >= 0 ? "+" : "") + excess.toFixed(1)} pp</span>
-      <span class="rr-ops">${ops.length === 0 ? "观望" : ops.length + " 次"}</span>
-    </div>`;
-  }).join("");
-  $("rp-rounds").innerHTML = `
-    <div class="rounds-sum">
-      <div class="rrow head"><span>局</span><span>标的</span><span>本局收益</span><span>vs 躺平</span><span>操作</span></div>
-      ${sumRows}
-    </div>
-    <div class="hero-actions" style="margin:12px 0 2px"><button class="btn" id="btnRoundDetail">展开逐局复盘详情 ▾</button></div>
-    <div id="roundsDetail" hidden>${cardsHtml}</div>`;
-  $("btnRoundDetail").onclick = () => {
-    const d = $("roundsDetail");
-    d.hidden = !d.hidden;
-    $("btnRoundDetail").textContent = d.hidden ? "展开逐局复盘详情 ▾" : "收起逐局复盘详情 ▴";
-  };
-
   const F = [];
   if (chase.length) F.push(["bad", `追高买入 ×${chase.length}`]);
   if (panic.length) F.push(["bad", `恐慌日卖出 ×${panic.length}`]);
@@ -1787,7 +1719,7 @@ function showReport() {
   }
   const excess = userRet - benchRet;
   lines.push(`对比躺平基准：总收益 ${fmtP(userRet)} − 躺平 ${fmtP(benchRet)} = 超额 ${(excess >= 0 ? "+" : "") + excess.toFixed(2)} pp；金额差 ${fmtW(tax)}（${tax < 0 ? "情绪税/踏空成本" : "逆势阿尔法"}）${userT.length && tax < 0 ? `，平均每次操作对应 ${fmtW(-tax / Math.max(1, userT.length))}` : ""}。`);
-  lines.push(`最大回撤 ${(mdd * 100).toFixed(1)}% · 最终资产 ${fmtW(finalV)}。综合评级【${tier} · ${score} 分】——评分 = 62 基础分 ± 收益差 − 行为偏差（封顶 -12）± 回撤修正，明细见上方逐段卡片。`);
+  lines.push(`最大回撤 ${(mdd * 100).toFixed(1)}% · 最终资产 ${fmtW(finalV)}。综合评级【${tier} · ${score} 分】——评分 = 62 基础分 ± 收益差 − 行为偏差（封顶 -12）± 回撤修正，十局明细见上方体检证书。`);
   typewriter($("ai-text"), lines.join("\n\n"));
 
   /* ---- 实测 MBTI（四维度从行为算出） ---- */
@@ -2099,7 +2031,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.20",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.21",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
