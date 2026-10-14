@@ -314,12 +314,15 @@
   .actions .cap { grid-column: span 2; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; padding: 0 2px 2px; }
   .actions .cap .cap-buy { color: var(--up); }
   .actions .cap .cap-sell { color: var(--down); }
+  /* 统一设计语言：半仓=浅色底+彩色字（力度弱），满仓/清仓=实心底+白字（力度强），买卖两侧对称 */
+  .btn.buy-half { background: var(--up-fill); color: var(--up); }
+  .btn.buy-half:hover:not(:disabled) { background: var(--up-fill-h); }
   .btn.buy { background: var(--up); color: #fff; }
   .btn.buy:hover:not(:disabled) { background: var(--up-h); }
-  .btn.sell { background: var(--down); color: #fff; }
-  .btn.sell:hover:not(:disabled) { background: var(--down-h); }
-  .btn.exit { background: var(--fill-2); color: var(--ink-dim); }
-  .btn.exit:hover:not(:disabled) { background: var(--fill); }
+  .btn.sell { background: var(--down-fill); color: var(--down); }
+  .btn.sell:hover:not(:disabled) { background: var(--down-fill-h); }
+  .btn.exit { background: var(--down); color: #fff; }
+  .btn.exit:hover:not(:disabled) { background: var(--down-h); }
   .log { padding: 0 20px 20px; flex: 1 1 auto; min-height: 96px; overflow-y: auto; }
   .log .li { font-size: 12px; color: var(--ink-faint); padding: 3px 0; }
 
@@ -364,20 +367,20 @@
   .rp-overview .tier-ladder { margin: 0; }
   .reveal { color: var(--ink-dim); font-size: 15px; margin-bottom: 6px; }
   .reveal b { color: var(--ink); font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
-  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 14px; margin: 20px 0; }
-  #screen-report .stat-grid { grid-template-columns: repeat(5, 1fr); }
-  @media (max-width: 900px) { #screen-report .stat-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
-  #screen-histdetail .stat-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .stat-grid { display: grid; gap: 14px; margin: 20px 0; }
+  /* 固定列数：无论窗口多宽，统计卡始终一行排开（窄窗口靠缩小字号适配） */
+  #screen-report .stat-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  #screen-histdetail .stat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   #screen-histdetail .report-actions { margin: 20px 0 12px; }
   /* 每局行内的行为标签（追高/卖飞/观望），替代卡片下方的统一统计行 */
   .mini-flags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
   .mini-flags .mf { font-style: normal; font-size: 10px; padding: 2.5px 9px; border-radius: 999px; white-space: nowrap; }
   .mini-flags .mf.bad { background: var(--up-fill); color: var(--up); }
   .mini-flags .mf.good { background: var(--down-fill); color: var(--down); }
-  .stat { background: var(--panel); border-radius: var(--radius); padding: 18px 20px 16px; box-shadow: var(--card-shadow); }
-  .stat .k { font-size: 12px; color: var(--ink-faint); }
-  .stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 6px; }
-  .stat .d { font-size: 11px; color: var(--ink-faint); margin-top: 5px; }
+  .stat { background: var(--panel); border-radius: var(--radius); padding: 18px 20px 16px; box-shadow: var(--card-shadow); min-width: 0; }
+  .stat .k { font-size: 12px; color: var(--ink-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat .v { font-size: clamp(16px, 1.9vw, 22px); font-weight: 600; letter-spacing: -.02em; margin-top: 6px; white-space: nowrap; }
+  .stat .d { font-size: 11px; color: var(--ink-faint); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .flags { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
   .flag { font-size: 12px; padding: 6px 12px; border-radius: 999px; background: var(--fill-2); color: var(--ink-dim); }
   .flag.bad { background: var(--up-fill); color: var(--up); }
@@ -537,9 +540,10 @@
     .settle-grid { grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
     .settle-grid .v { font-size: 17px; }
     .settle-grid .cell { padding: 10px 11px; }
-    .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .stat { padding: 14px 15px; }
-    .stat .v { font-size: 20px; }
+    .stat-grid { gap: 8px; }
+    .stat { padding: 12px 11px; }
+    .stat .v { font-size: 16px; }
+    .stat .d { font-size: 10px; }
     .rnd-row { grid-template-columns: 110px 1fr 70px 80px; font-size: 12px; }
     .hd-rounds { grid-template-columns: 1fr; }
     #histModal .settle-card { width: calc(100vw - 24px) !important; max-height: 88vh; }
@@ -573,7 +577,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.25</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.26</span></div>
 </header>
 
 <main class="wrap">
@@ -716,7 +720,7 @@
         <div class="kbd-hint">快捷键：空格/点击K线 下一日 · B 买入（双击 = 满仓）· S 卖出（双击 = 清仓）· 回车 快进结算</div>
         <div class="actions">
           <div class="cap"><span class="cap-buy">买 入</span><span class="cap-sell">卖 出</span></div>
-          <button class="btn buy" id="btnHalf"></button>
+          <button class="btn buy-half" id="btnHalf"></button>
           <button class="btn buy" id="btnFull"></button>
           <button class="btn sell" id="btnSellHalf"></button>
           <button class="btn exit" id="btnClear">清仓</button>
@@ -2136,7 +2140,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.25",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.26",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
