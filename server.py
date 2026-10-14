@@ -16,12 +16,18 @@ import socket
 import sqlite3
 import subprocess
 import threading
+import urllib.request
+import urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MODEL = "hy3"
 # API key 从环境变量读取（勿硬编码提交）；未配置时 /api/analyze 自动走本地规则兜底
 CB_KEY = os.environ.get("CODEBUDDY_API_KEY", "")
+# 云服务器无 codebuddy CLI：LLM_BASE_URL/LLM_API_KEY/LLM_MODEL 指向任意 OpenAI 兼容接口即可点亮真 AI
+LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "").rstrip("/")
+LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
+LLM_MODEL = os.environ.get("LLM_MODEL", "")
 PORT = int(os.environ.get("PORT", "8741"))
 HOST = os.environ.get("HOST", "127.0.0.1")
 # 测试可通过 TT_DB 指定独立数据库，避免碰真实用户数据
@@ -136,10 +142,34 @@ def _free_port():
     return p
 
 
+def call_model_http(prompt, timeout=120):
+    """OpenAI 兼容 HTTP 直连（云服务器用）：LLM_BASE_URL + LLM_API_KEY + LLM_MODEL 三者齐备才启用。"""
+    if not (LLM_BASE_URL and LLM_API_KEY and LLM_MODEL):
+        raise RuntimeError("LLM HTTP 未配置")
+    body = json.dumps({
+        "model": LLM_MODEL,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.7,
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        LLM_BASE_URL + "/chat/completions", data=body,
+        headers={"Content-Type": "application/json",
+                 "Authorization": "Bearer " + LLM_API_KEY})
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        resp = json.loads(r.read().decode("utf-8"))
+    content = (resp.get("choices") or [{}])[0].get("message", {}).get("content", "")
+    if not content:
+        raise RuntimeError("LLM HTTP 空响应")
+    return content
+
+
 def call_model(prompt, timeout=300):
-    """通过 codebuddy CLI 调用 hy3：需注入 API key、清掉代理环境变量、指定空闲端口。"""
-    if not CB_KEY:
-        raise RuntimeError("CODEBUDDY_API_KEY 未配置，走本地兜底")
+    """优先 HTTP 直连；失败回退 codebuddy CLI（本机开发）；都不可用由调用方走规则兜底。"""
+    try:
+        return call_model_http(prompt)
+    except Exception as http_err:
+        if not CB_KEY:
+            raise RuntimeError(f"LLM HTTP 失败且 CODEBUDDY_API_KEY 未配置: {http_err}")
     env = os.environ.copy()
     env["CODEBUDDY_API_KEY"] = CB_KEY
     for k in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",

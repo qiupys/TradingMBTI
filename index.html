@@ -137,8 +137,11 @@
   :root[data-theme="dark"] .theme-btn .ico-moon { display: block; }
 
   /* ---------- 通用块 ---------- */
-  .hero { background: var(--panel); border-radius: var(--radius); padding: 42px 44px; max-width: 720px; box-shadow: var(--card-shadow); }
-  #screen-auth .hero { max-width: 540px; }
+  .hero { background: var(--panel); border-radius: var(--radius); padding: 42px 44px; max-width: 720px; box-shadow: var(--card-shadow); margin: 0 auto; }
+  #screen-auth .hero { max-width: 540px; width: 100%; }
+  /* 登录页：视口内水平+垂直居中，小屏自动回落为常规流式布局 */
+  #screen-auth.on { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 140px); }
+  @media (max-width: 760px) { #screen-auth.on { min-height: 0; padding: 10px 0 40px; } }
   .hero .sec { color: var(--tint); font-size: 12px; font-weight: 600; letter-spacing: .01em; }
   .hero h2 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin: 12px 0 10px; }
   .hero p { color: var(--ink-dim); font-size: 15px; margin: 10px 0; }
@@ -375,6 +378,7 @@
   .mbti-sec b { display: block; color: var(--ink-faint); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
   .mbti-sec ul { margin: 4px 0 0 20px; }
   .report-actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .cert-block { margin: 24px auto 0; max-width: 750px; }
   #cert { width: 100%; border-radius: var(--radius); display: block; box-shadow: var(--card-shadow); }
   .cert-cap { color: var(--ink-faint); font-size: 12px; margin: 12px 0 2px; }
 
@@ -653,7 +657,7 @@
             <span class="px" id="q-px"></span>
             <span class="pc" id="q-pc"></span>
           </div>
-          <canvas id="chart" height="380"></canvas>
+          <canvas id="chart" height="432"></canvas>
         </div>
         <div class="panel news-wrap" style="margin-top:16px">
           <div class="news-panel">
@@ -746,15 +750,18 @@
         </div>
       </div>
       <div>
-        <canvas id="cert" width="750" height="1300"></canvas>
-        <div class="cert-cap">体检证书 · 长图保存后可直接转发微信</div>
+        <div class="cert-cap" style="margin-top:2px">体检证书在页面底部，全宽展示 · 长图保存后可直接转发微信</div>
         <div class="report-actions">
           <button class="btn primary" id="btnDownload">下载体检证书</button>
           <button class="btn" id="btnAgain">再来一局</button>
           <button class="btn" id="btnHistReport">历史战绩</button>
         </div>
       </div>
-      </div>
+    </div>
+    <!-- 证书全宽展示：750 设计宽原尺寸渲染，文字清晰可读 -->
+    <div class="cert-block">
+      <canvas id="cert" width="750" height="1300"></canvas>
+    </div>
   </section>
 
   <!-- 历史战绩 · 单次体检详情页 -->
@@ -1461,7 +1468,7 @@ const ctx = chart.getContext("2d");
 function drawChart() {
   const P = PAL();
   const k = S.scen.k, lb = S.scen.lb || null, i = S.i;
-  const W = chart.clientWidth, H = 380, dpr = window.devicePixelRatio || 1;
+  const W = chart.clientWidth, H = 432, dpr = window.devicePixelRatio || 1;
   chart.width = W * dpr; chart.height = H * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
@@ -1470,15 +1477,19 @@ function drawChart() {
   const N0 = lb ? lb.dates.length : 0;
   const wStart = Math.max(0, i - 49);          // 窗口内最多展示最近 50 根
   const N = N0 + (i - wStart + 1);
-  const RIGHT = 64, L = 8, MARK_H = 26;        // MARK_H = 底部买卖标记条高度
-  const plotW = W - RIGHT - L, plotH = H - 26 - MARK_H - 6;
+  const RIGHT = 64, L = 8;                     // 底部买卖标记条独立成带
+  /* 三段式布局：价格主图 / 成交量副图 / 标记带，互不重叠 */
+  const priceTop = 6, priceH = 252;
+  const volTop = priceTop + priceH + 14, volH = 56;
+  const stripTop = volTop + volH + 8;
+  const plotW = W - RIGHT - L;
   const cw = plotW / (N + 4);
   const X = slot => L + slot * cw + cw / 2;    // slot: 0..N0-1 灰区, N0.. 对应窗口日 wStart..
   let lo = Infinity, hi = -Infinity;
   if (lb) for (let j = 0; j < lb.l.length; j++) { lo = Math.min(lo, lb.l[j]); hi = Math.max(hi, lb.h[j]); }
   for (let j = wStart; j <= i; j++) { lo = Math.min(lo, k.l[j]); hi = Math.max(hi, k.h[j]); }
   const pad = Math.max(0.02, (hi - lo) * 0.08); lo -= pad; hi += pad;
-  const Y = p => plotH - (p - lo) / (hi - lo) * plotH;
+  const Y = p => priceTop + priceH - (p - lo) / (hi - lo) * priceH;
 
   ctx.strokeStyle = P.grid; ctx.fillStyle = P.gray;
   ctx.font = "11px -apple-system, 'PingFang SC', sans-serif"; ctx.textAlign = "left";
@@ -1500,7 +1511,7 @@ function drawChart() {
   if (N0) {
     const xd = X(N0) - cw / 2;
     ctx.setLineDash([3, 4]); ctx.strokeStyle = P.tintSoft;
-    ctx.beginPath(); ctx.moveTo(xd, 6); ctx.lineTo(xd, plotH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(xd, priceTop); ctx.lineTo(xd, priceTop + priceH); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = P.tintMid; ctx.font = "10px -apple-system, 'PingFang SC', sans-serif";
     ctx.textAlign = "left"; ctx.fillText("入场 →", xd + 5, 14);
@@ -1528,22 +1539,23 @@ function drawChart() {
     ctx.fillRect(x - bw/2, Y(Math.max(o, c)), bw, Math.max(1.5, Y(Math.min(o, c)) - Y(Math.max(o, c))));
   }
 
-  /* 成交量柱：叠加在价格区底部（Robinhood/富途画法，半透明不抢主线） */
+  /* 成交量副图：独立区域，与价格主图分离，互不遮挡 */
   if (k.v) {
     let vmax = 0;
     for (let j = wStart; j <= i; j++) vmax = Math.max(vmax, k.v[j]);
     if (vmax > 0) {
-      const vh = plotH * 0.18;
       const bw = Math.max(2, cw * 0.62);
       for (let j = wStart; j <= i; j++) {
         const upDay = k.c[j] >= k.o[j];
         const x = X(N0 + (j - wStart));
-        const h = Math.max(1, k.v[j] / vmax * vh);
+        const h = Math.max(1, k.v[j] / vmax * volH);
         ctx.fillStyle = upDay ? P.legendUp : P.legendDown;
-        ctx.fillRect(x - bw/2, plotH - h, bw, h);
+        ctx.fillRect(x - bw/2, volTop + volH - h, bw, h);
       }
       ctx.fillStyle = P.axis3; ctx.font = "9px -apple-system, 'PingFang SC', sans-serif";
-      ctx.textAlign = "left"; ctx.fillText("成交量", L + 2, plotH - vh - 4);
+      ctx.textAlign = "left"; ctx.fillText("成交量", L + 2, volTop - 4);
+      ctx.strokeStyle = P.grid2;
+      ctx.beginPath(); ctx.moveTo(L, volTop + volH + 0.5); ctx.lineTo(W - RIGHT, volTop + volH + 0.5); ctx.stroke();
     }
   }
 
@@ -1559,9 +1571,9 @@ function drawChart() {
 
   /* 成交标记条：画在K线下方的独立标记带里。每个交易日聚合成一个买标记 + 一个卖标记，
      四类操作四种图形：买入半仓=空心▲ · 满仓/加满=实心▲ · 卖出半仓=空心▼ · 清仓=实心◆ · 强平=空心◆ */
-  const stripY = plotH + 15;
+  const stripY = stripTop + 12;
   ctx.strokeStyle = P.grid2;
-  ctx.beginPath(); ctx.moveTo(L, plotH + 3); ctx.lineTo(W - RIGHT, plotH + 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(L, stripTop); ctx.lineTo(W - RIGHT, stripTop); ctx.stroke();
   const opType = t => t.action.includes("买入") || t.action.includes("加仓")
     ? (t.action === "买入半仓" ? "bh" : "bf")
     : (t.forced ? "xf" : t.action === "卖出半仓" ? "sh" : "cl");
@@ -1603,8 +1615,8 @@ function drawChart() {
   });
   if (mTrades.length) {
     ctx.font = "9px -apple-system, 'PingFang SC', sans-serif"; ctx.textAlign = "left";
-    ctx.fillStyle = P.legendUp; ctx.fillText("▲买 ▲实心=满仓", L + 2, plotH + 13);
-    ctx.fillStyle = P.legendDown; ctx.fillText("▼卖 ◆清仓 ◇强平", L + 2, plotH + 24);
+    ctx.fillStyle = P.legendUp; ctx.fillText("▲买 ▲实心=满仓", L + 2, stripY + 12);
+    ctx.fillStyle = P.legendDown; ctx.fillText("▼卖 ◆清仓 ◇强平", L + 2, stripY + 23);
   }
 }
 window.addEventListener("resize", () => S && !S.done && drawChart());
@@ -2056,7 +2068,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.17",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.18",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
@@ -2065,8 +2077,9 @@ function renderCert() {
   y += 46;
   const H = Math.round(y);
 
-  /* ---- Pass 2：定高重置画布，画底色边框，统一绘制 ---- */
-  cv.width = W; cv.height = H;
+  /* ---- Pass 2：定高重置画布（2 倍超采样保证 retina 与下载图清晰），画底色边框，统一绘制 ---- */
+  cv.width = W * 2; cv.height = H * 2;
+  c.setTransform(2, 0, 0, 2, 0, 0);
   c.fillStyle = P.certBg; c.fillRect(0, 0, W, H);
   c.strokeStyle = P.certLine; c.lineWidth = 2; c.strokeRect(26, 26, W - 52, H - 52);
   c.strokeStyle = P.grid2; c.strokeRect(36, 36, W - 72, H - 72);
