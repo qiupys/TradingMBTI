@@ -122,7 +122,7 @@
 
   /* ---------- 页头 ---------- */
   header { padding: 34px 0 0; }
-  .brand { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; width: 100%; }
   .brand .logo { width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(0,113,227,.35); }
   .brand h1 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; }
@@ -147,8 +147,13 @@
   .hero { background: var(--panel); border-radius: var(--radius); padding: 42px 44px; max-width: 720px; box-shadow: var(--card-shadow); margin: 0 auto; }
   #screen-auth .hero { max-width: 540px; width: 100%; }
   /* 登录页：视口内水平+垂直居中，小屏自动回落为常规流式布局 */
-  #screen-auth.on { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 140px); }
+  #screen-auth.on { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 140px); padding: 44px 0 56px; }
   @media (max-width: 760px) { #screen-auth.on { min-height: 0; padding: 10px 0 40px; } }
+  /* 矮窗口：固定顶部留白、压缩卡片内边距，保证不溢出也不顶到页头 */
+  @media (min-width: 761px) and (max-height: 820px) {
+    #screen-auth.on { min-height: 0; padding: 36px 0 24px; }
+    #screen-auth .hero { padding: 28px 34px; }
+  }
   .hero .sec { color: var(--tint); font-size: 12px; font-weight: 600; letter-spacing: .01em; }
   .hero h2 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin: 12px 0 10px; }
   .hero p { color: var(--ink-dim); font-size: 15px; margin: 10px 0; }
@@ -439,7 +444,9 @@
   .auth-msg.ok { color: var(--down); }
   .auth-foot { max-width: 380px; color: var(--ink-faint); font-size: 12px; line-height: 1.65; margin-top: 18px; }
   .auth-foot b { color: var(--ink-dim); font-weight: 500; }
-  .user-chip { margin-left: 10px; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-dim); }
+  /* 用户信息组靠右；未登录（chip 隐藏）时主题按钮的 auto 外边距独占右侧 */
+  .user-chip { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-dim); }
+  .user-chip:not([hidden]) ~ .theme-btn { margin-left: 0; }
   .user-chip[hidden] { display: none; }   /* display:flex 会覆盖 hidden 属性，必须显式抵消 */
   [hidden] { display: none !important; }  /* 全局兜底：任何显式 display 都不允许压过 hidden */
   .user-chip b { color: var(--ink); font-weight: 600; }
@@ -549,7 +556,7 @@
     #histModal .settle-card { width: calc(100vw - 24px) !important; max-height: 88vh; }
     .auth-tabs, .auth-form, .auth-foot { max-width: none; }
     .theme-btn { width: 30px; height: 30px; margin-left: auto; }
-    .user-chip { margin-left: 8px; }
+    .user-chip { margin-left: auto; }
   }
 </style>
 <script>
@@ -577,7 +584,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.26</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.27</span></div>
 </header>
 
 <main class="wrap">
@@ -2140,7 +2147,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.26",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.27",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
