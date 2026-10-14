@@ -24,7 +24,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 MODEL = "hy3"
 # API key 从环境变量读取（勿硬编码提交）；未配置时 /api/analyze 自动走本地规则兜底
 CB_KEY = os.environ.get("CODEBUDDY_API_KEY", "")
-# 云服务器无 codebuddy CLI：LLM_BASE_URL/LLM_API_KEY/LLM_MODEL 指向任意 OpenAI 兼容接口即可点亮真 AI
+# 两条通道任选其一：1) LLM_BASE_URL/LLM_API_KEY/LLM_MODEL 指向任意 OpenAI 兼容接口（HTTP 直连，优先）；
+#                    2) 服务器安装 @tencent-ai/codebuddy-code 并迁移首次激活设备的 ~/.codebuddy 会话状态
+#                       （key 与设备绑定，缺一不可），由 systemd 注入 CODEBUDDY_API_KEY + PATH/HOME
 LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "").rstrip("/")
 LLM_API_KEY = os.environ.get("LLM_API_KEY", "")
 LLM_MODEL = os.environ.get("LLM_MODEL", "")
