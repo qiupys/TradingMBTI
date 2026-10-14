@@ -199,7 +199,7 @@
   .note { color: var(--ink-faint); font-size: 12px; margin-top: 20px; line-height: 1.65; }
 
   /* ---------- 玩法说明 ---------- */
-  .rules { max-width: 720px; }
+  .rules { max-width: 720px; margin: 0 auto; }
   .rules h3 { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin-bottom: 18px; }
   .rule-list { display: grid; gap: 10px; }
   .rule { background: var(--panel); border-radius: var(--radius-sm); padding: 17px 22px; font-size: 15px;
@@ -320,19 +320,24 @@
   #histModal { z-index: 60; }
   #settle.on, #histModal.on { display: flex; }
   .settle-card { width: min(540px, calc(100vw - 36px)); max-height: 86vh; overflow-y: auto; background: var(--panel2);
-    border-radius: 24px; padding: 34px 34px 30px; box-shadow: var(--pop-shadow); }
-  .settle-card .tag { color: var(--ink-faint); font-size: 12px; font-weight: 600; }
-  .settle-card h3 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 10px 0 4px; }
-  .settle-card .story { color: var(--tint); font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .settle-card .meta { color: var(--ink-faint); font-size: 12px; margin-bottom: 20px; }
-  .settle-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 18px 0; }
-  .settle-grid .cell { background: var(--fill-2); border-radius: var(--radius-sm); padding: 14px 15px; }
-  .settle-grid .k { font-size: 11px; color: var(--ink-faint); }
-  .settle-grid .v { font-size: 20px; font-weight: 600; letter-spacing: -.02em; margin-top: 4px; }
-  .settle-flags { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0 18px; }
+    border-radius: 24px; padding: 30px 32px 26px; box-shadow: var(--pop-shadow); }
+  .settle-card .tag { display: inline-block; color: var(--tint); background: var(--tint-fill); font-size: 12px;
+    font-weight: 600; padding: 5px 12px; border-radius: 999px; letter-spacing: .02em; }
+  .settle-card h3 { font-size: 28px; font-weight: 700; letter-spacing: -.02em; margin: 14px 0 2px; }
+  .settle-card .story { background: var(--fill-2); border-left: 3px solid var(--tint); border-radius: 6px 12px 12px 6px;
+    color: var(--ink-dim); font-size: 14px; line-height: 1.6; padding: 11px 14px; margin: 12px 0 8px; }
+  .settle-card .meta { color: var(--ink-faint); font-size: 12px; margin-bottom: 18px; }
+  .settle-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 0 0 14px; }
+  .settle-grid .cell { background: var(--fill-2); border-radius: var(--radius-sm); padding: 13px 15px; min-width: 0; }
+  .settle-grid .k { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+  .settle-grid .v { font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin-top: 5px;
+    font-variant-numeric: tabular-nums; }
+  .settle-flags { display: flex; flex-wrap: wrap; gap: 7px; margin: 2px 0 18px; }
   .settle-flags .flag { font-size: 11px; padding: 5px 11px; border-radius: 999px; background: var(--fill-2); color: var(--ink-dim); }
   .settle-flags .flag.bad { background: var(--up-fill); color: var(--up); }
   .settle-flags .flag.good { background: var(--down-fill); color: var(--down); }
+  #settle .hero-actions { margin: 0; }
+  #settle .hero-actions .btn { width: 100%; min-height: 46px; font-size: 15px; }
 
   /* ---------- 总报告 ---------- */
   .report { display: grid; grid-template-columns: 1fr 372px; gap: 24px; align-items: start; }
@@ -379,6 +384,14 @@
   .mbti-sec ul { margin: 4px 0 0 20px; }
   .report-actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
   .cert-block { margin: 24px auto 0; max-width: 750px; }
+  .cert-pending { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+    background: var(--panel); border-radius: var(--radius); padding: 64px 24px; box-shadow: var(--card-shadow); }
+  .cert-pending b { font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+  .cert-pending span { color: var(--ink-faint); font-size: 13px; }
+  .cert-pending .spin { width: 30px; height: 30px; border-radius: 50%; margin-bottom: 4px;
+    border: 3px solid var(--fill-2); border-top-color: var(--tint); animation: certspin .9s linear infinite; }
+  @keyframes certspin { to { transform: rotate(360deg); } }
+  .btn.loading { opacity: .5; pointer-events: none; }
   #cert { width: 100%; border-radius: var(--radius); display: block; box-shadow: var(--card-shadow); }
   .cert-cap { color: var(--ink-faint); font-size: 12px; margin: 12px 0 2px; }
 
@@ -546,7 +559,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.18</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.19</span></div>
 </header>
 
 <main class="wrap">
@@ -750,7 +763,7 @@
         </div>
       </div>
       <div>
-        <div class="cert-cap" style="margin-top:2px">体检证书在页面底部，全宽展示 · 长图保存后可直接转发微信</div>
+        <div class="cert-cap" style="margin-top:2px">体检证书将在 AI 深度分析完成后于页面底部自动生成 · 长图保存后可直接转发微信</div>
         <div class="report-actions">
           <button class="btn primary" id="btnDownload">下载体检证书</button>
           <button class="btn" id="btnAgain">再来一局</button>
@@ -758,9 +771,14 @@
         </div>
       </div>
     </div>
-    <!-- 证书全宽展示：750 设计宽原尺寸渲染，文字清晰可读 -->
+    <!-- 证书全宽展示：AI 深度分析完成后才生成，750 设计宽原尺寸渲染，文字清晰可读 -->
     <div class="cert-block">
-      <canvas id="cert" width="750" height="1300"></canvas>
+      <div class="cert-pending" id="certPending">
+        <div class="spin"></div>
+        <b>AI 深度分析中，证书生成排队中…</b>
+        <span>分析完成后自动生成专属体检证书（约 20–60 秒），届时可下载保存</span>
+      </div>
+      <canvas id="cert" width="750" height="1300" hidden></canvas>
     </div>
   </section>
 
@@ -1941,14 +1959,27 @@ function renderMBTI(m, source, mbti) {
 }
 
 /* ============ 证书（长图：曲线 + 数据 + 十局明细 + 体检总评 + AI 点评） ============ */
-let certData = null;
+/* 证书必须等 AI 深度分析返回后才渲染/可下载：drawCert 只备数据，renderMBTI 完成后揭幕 */
+let certData = null, certReady = false;
 function drawCert(score, tier, userRet, benchRet, tax, mdd, curve, mbti, summary, roundRows) {
   certData = { score, tier, userRet, benchRet, tax, mdd, curve, mbti, selfCode: mbti ? mbti.self : "",
                summary: summary || "", roundRows: roundRows || [] };
-  return renderCert();
+  certReady = false;
+  $("certPending").hidden = false;
+  $("cert").hidden = true;
+  const dl = $("btnDownload");
+  dl.classList.add("loading");
+  dl.textContent = "等待 AI 深度分析…";
+  return null;
 }
 function renderCert() {
   const { score, tier, userRet, benchRet, tax, mdd, curve, mbti, summary, roundRows } = certData;
+  certReady = true;
+  $("certPending").hidden = true;
+  $("cert").hidden = false;
+  const dl = $("btnDownload");
+  dl.classList.remove("loading");
+  dl.textContent = "下载体检证书";
   const P = PAL();
   const cv = $("cert"), c = cv.getContext("2d");
   const W = 750;
@@ -2068,7 +2099,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.18",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.19",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
@@ -2087,6 +2118,7 @@ function renderCert() {
   ops.forEach(fn => fn());
 }
 $("btnDownload").onclick = () => {
+  if (!certReady) return;
   const a = document.createElement("a");
   a.download = "韭菜体检证书_" + (certData ? certData.tier : "report") + ".png";
   a.href = $("cert").toDataURL("image/png");
@@ -2098,7 +2130,7 @@ $("btnTheme").onclick = () => {
   try { localStorage.setItem("tt_theme", t); } catch (e) {}
   document.documentElement.dataset.theme = t;
   if (S && !S.done && $("screen-game").classList.contains("on")) drawChart();
-  if (certData && $("screen-report").classList.contains("on")) renderCert();
+  if (certData && certReady && $("screen-report").classList.contains("on")) renderCert();
 };
 $("btnAgain").onclick = () => { show("screen-select"); };
 </script>
