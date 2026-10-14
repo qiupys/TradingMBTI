@@ -30,6 +30,7 @@
     --down: #34c759;
     --tint: #0071e3;
     --tint-h: #0077ed;
+    --tint-ink: #ffffff;
     --up-h: #e6362b;
     --down-h: #2aa14c;
     --gold: #b45309;
@@ -68,15 +69,17 @@
     --ink-faint: rgba(235,235,245,.36);
     --up: #ff453a;
     --down: #30d158;
-    --tint: #0a84ff;
-    --tint-h: #2492ff;
+    /* 夜间主题专属强调色：时光机金 —— 与日间蓝是两套独立配色 */
+    --tint: #ffd60a;
+    --tint-h: #ffe23c;
+    --tint-ink: #3a2e00;
     --up-h: #ff6961;
     --down-h: #5fe08a;
     --gold: #ffd60a;
     --fill: rgba(120,120,128,.24);
     --fill-2: rgba(120,120,128,.16);
     --fill-h: rgba(120,120,128,.32);
-    --tint-fill: rgba(10,132,255,.16);
+    --tint-fill: rgba(255,214,10,.14);
     --up-fill: rgba(255,69,58,.16);
     --up-fill-h: rgba(255,69,58,.26);
     --down-fill: rgba(48,209,88,.16);
@@ -87,7 +90,7 @@
     --tab-shadow: 0 2px 8px rgba(0,0,0,.28);
     --scrim: rgba(0,0,0,.6);
     --scroll-thumb: rgba(255,255,255,.14);
-    --sel: rgba(10,132,255,.35);
+    --sel: rgba(255,214,10,.3);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -154,7 +157,10 @@
   /* ---- 渐变 Hero（品牌蓝 · 参考 Robinhood/富途行情站首屏）---- */
   .hero-g { position: relative; overflow: hidden;
     background: linear-gradient(135deg, #0a84ff 0%, #0060df 52%, #0044a8 100%); color: #fff; }
-  :root[data-theme="dark"] .hero-g { background: linear-gradient(135deg, #0a6ee0 0%, #064ea8 55%, #043273 100%); }
+  :root[data-theme="dark"] .hero-g { background: linear-gradient(135deg, #6b5200 0%, #46360a 55%, #241c04 100%); }
+  :root[data-theme="dark"] .hero-g .btn.primary { background: #ffd60a; color: #3a2e00; }
+  :root[data-theme="dark"] .hero-g .btn.primary:hover:not(:disabled) { background: #ffe23c; }
+  :root[data-theme="dark"] .hero-g .auth-tab.on { background: #ffd60a; color: #3a2e00; }
   .hero-g::after { content: ""; position: absolute; right: -20px; bottom: -12px; width: 380px; height: 200px;
     pointer-events: none; opacity: .5;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 200'%3E%3Cpath d='M0 170 L40 150 L80 158 L120 120 L160 132 L200 96 L240 110 L280 70 L320 84 L380 30' fill='none' stroke='rgba(255,255,255,.35)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M0 170 L40 150 L80 158 L120 120 L160 132 L200 96 L240 110 L280 70 L320 84 L380 30 L380 200 L0 200 Z' fill='rgba(255,255,255,.06)'/%3E%3C/svg%3E") no-repeat right bottom / contain; }
@@ -193,7 +199,7 @@
   .btn:hover:not(:disabled) { background: var(--fill-h); }
   .btn:active:not(:disabled) { transform: scale(.975); opacity: .86; }
   .btn:disabled { opacity: .32; cursor: not-allowed; transform: none; }
-  .btn.primary { background: var(--tint); color: #fff; }
+  .btn.primary { background: var(--tint); color: var(--tint-ink, #fff); }
   .btn.primary:hover:not(:disabled) { background: var(--tint-h); }
   .btn.small { min-height: 32px; padding: 0 14px; font-size: 13px; border-radius: 10px; }
   .note { color: var(--ink-faint); font-size: 12px; margin-top: 20px; line-height: 1.65; }
@@ -343,17 +349,27 @@
   /* ---------- 总报告（单列全宽：证书已移至底部，不再需要右栏） ---------- */
   .report { display: grid; grid-template-columns: 1fr; gap: 0; align-items: start; }
   @media (max-width: 900px) { .report { grid-template-columns: 1fr; } }
-  .report-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    flex-wrap: wrap; margin: 14px 0 4px; }
-  .report-bar .cert-cap { margin: 0; }
+  .rp-head { background: var(--panel); border-radius: var(--radius); padding: 24px 28px 20px;
+    box-shadow: var(--card-shadow); display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; }
+  .rp-head .cert-cap { margin: 4px 0 0; }
+  .rp-head .report-actions { margin-top: 0; }
+  .rp-overview .stat { background: var(--fill-2); box-shadow: none; border-radius: var(--radius-sm); }
+  .rp-overview .stat-grid { margin: 4px 0 14px; }
+  .rp-overview .flags { margin: 0 0 14px; }
+  .rp-overview .tier-ladder { margin: 0; }
   .reveal { color: var(--ink-dim); font-size: 15px; margin-bottom: 6px; }
   .reveal b { color: var(--ink); font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
   .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 14px; margin: 20px 0; }
   #screen-report .stat-grid { grid-template-columns: repeat(5, 1fr); }
   @media (max-width: 900px) { #screen-report .stat-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } }
-  #screen-histdetail .stat-grid { grid-template-columns: repeat(4, 1fr); }
-  @media (max-width: 900px) { #screen-histdetail .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+  #screen-histdetail .stat-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
   #screen-histdetail .report-actions { margin: 20px 0 12px; }
+  /* 每局行内的行为标签（追高/卖飞/观望），替代卡片下方的统一统计行 */
+  .mini-flags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .mini-flags .mf { font-style: normal; font-size: 10px; padding: 2.5px 9px; border-radius: 999px; white-space: nowrap; }
+  .mini-flags .mf.bad { background: var(--up-fill); color: var(--up); }
+  .mini-flags .mf.good { background: var(--down-fill); color: var(--down); }
   .stat { background: var(--panel); border-radius: var(--radius); padding: 18px 20px 16px; box-shadow: var(--card-shadow); }
   .stat .k { font-size: 12px; color: var(--ink-faint); }
   .stat .v { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 6px; }
@@ -365,7 +381,7 @@
   .tier-ladder { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 18px; align-items: center; }
   .tier-ladder .lab { font-size: 13px; color: var(--ink-faint); margin-right: 4px; }
   .tier-ladder .tl { font-size: 13px; padding: 9px 18px; border-radius: 999px; background: var(--fill-2); color: var(--ink-faint); transition: .2s var(--ease); }
-  .tier-ladder .tl.cur { background: var(--tint); color: #fff; font-weight: 600; }
+  .tier-ladder .tl.cur { background: var(--tint); color: var(--tint-ink, #fff); font-weight: 600; }
   .rnd-table { background: var(--panel); border-radius: var(--radius); padding: 16px 20px; margin: 8px 0; box-shadow: var(--card-shadow); }
   .rnd-row { display: grid; grid-template-columns: 150px 1fr 90px 110px; gap: 8px; font-size: 13px; padding: 8px 0;
     border-bottom: 1px solid var(--line); align-items: baseline; }
@@ -553,7 +569,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.23</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.24</span></div>
 </header>
 
 <main class="wrap">
@@ -732,8 +748,8 @@
       <h3 style="font-size:22px">确认结算本局？</h3>
       <p class="meta" style="margin:10px 0 18px">结算后本局不能再操作，持仓将按当日收盘价强制平仓，盈亏带入下一局。</p>
       <div class="hero-actions" style="display:flex; gap:10px">
-        <button class="btn" id="btnSkipNo" style="flex:1; min-height:46px">返回继续操盘</button>
-        <button class="btn primary" id="btnSkipYes" style="flex:1; min-height:46px">确认结算，进入下一局 →</button>
+        <button class="btn" id="btnSkipNo" style="flex:1; min-height:46px; white-space:nowrap">返回继续操盘</button>
+        <button class="btn primary" id="btnSkipYes" style="flex:1; min-height:46px; white-space:nowrap">确认结算 →</button>
       </div>
     </div>
   </div>
@@ -750,18 +766,20 @@
     </div>
   </div>
 
-  <!-- 总报告（单列全宽） -->
+  <!-- 总报告（单列全宽：头卡 → 证书 → 数据总览卡 → AI 卡，区块归组不零散） -->
   <section id="screen-report" class="screen">
-    <div class="reveal" id="rp-reveal"></div>
-    <div class="report-bar">
-      <div class="cert-cap">体检证书将在 AI 深度分析完成后于下方自动生成 · 长图保存后可直接转发微信</div>
+    <div class="rp-head">
+      <div class="rp-head-l">
+        <div class="reveal" id="rp-reveal"></div>
+        <div class="cert-cap">体检证书将在 AI 深度分析完成后于下方自动生成 · 长图保存后可直接转发微信</div>
+      </div>
       <div class="report-actions">
         <button class="btn primary" id="btnDownload">下载体检证书</button>
         <button class="btn" id="btnAgain">再来一局</button>
         <button class="btn" id="btnHistReport">历史战绩</button>
       </div>
     </div>
-    <!-- 证书全宽展示：紧跟操作栏，AI 深度分析完成后才生成，750 设计宽 2x 超采样，文字清晰可读 -->
+    <!-- 证书全宽展示：紧跟头卡，AI 深度分析完成后才生成，750 设计宽 2x 超采样，文字清晰可读 -->
     <div class="cert-block">
       <div class="cert-pending" id="certPending">
         <div class="spin"></div>
@@ -770,9 +788,12 @@
       </div>
       <canvas id="cert" width="750" height="1300" hidden></canvas>
     </div>
-    <div class="stat-grid" id="rp-stats"></div>
-    <div class="flags" id="rp-flags"></div>
-    <div class="tier-ladder" id="rp-tiers"></div>
+    <div class="ai-card rp-overview">
+      <h4><span class="dot"></span>体检数据</h4>
+      <div class="stat-grid" id="rp-stats"></div>
+      <div class="flags" id="rp-flags"></div>
+      <div class="tier-ladder" id="rp-tiers"></div>
+    </div>
     <div class="ai-card">
       <h4><span class="dot"></span>逐段复盘 · 每一局都算得清 · <span id="rp-tier"></span></h4>
       <div class="rp-save" id="rp-save"></div>
@@ -788,7 +809,7 @@
   <section id="screen-histdetail" class="screen">
     <div class="report" style="grid-template-columns:1fr">
       <div>
-        <div class="hero" style="text-align:left;padding:0 0 6px">
+        <div class="hero" style="text-align:left;padding:26px 28px 22px;margin:0 0 14px">
           <div class="sec" id="hdd-meta"></div>
           <h2 id="hdd-tier"></h2>
           <div class="hdd-badges" id="hdd-badges"></div>
@@ -831,8 +852,10 @@ function PAL() {
     gray:"#8e8e93", axis:"rgba(142,142,147,.4)", axis2:"rgba(142,142,147,.28)", axis3:"rgba(142,142,147,.7)",
     up:"#ff453a", down:"#30d158", upSoft:"#ff6961", downSoft:"#5fe08a",
     legendUp:"rgba(255,105,97,.65)", legendDown:"rgba(95,224,138,.65)",
-    tint:"#0a84ff", tintSoft:"rgba(10,132,255,.5)", tintMid:"rgba(10,132,255,.75)",
+    /* 夜间主题强调色 = 时光机金（与日间蓝为两套独立配色） */
+    tint:"#ffd60a", tintSoft:"rgba(255,214,10,.5)", tintMid:"rgba(255,214,10,.75)",
     chipInk:"#fff", ink:"#ffffff", dim:"#98989d", body:"#c7c7cc",
+    volBg:"rgba(120,120,128,.09)",
     certBg:"#1c1c1e", certLine:"rgba(255,255,255,.1)", certLine2:"rgba(255,255,255,.06)",
   } : {
     grid:"rgba(60,60,67,.1)", grid2:"rgba(60,60,67,.09)", dash:"rgba(60,60,67,.3)",
@@ -841,6 +864,7 @@ function PAL() {
     legendUp:"rgba(230,69,57,.75)", legendDown:"rgba(31,157,77,.8)",
     tint:"#007aff", tintSoft:"rgba(0,122,255,.5)", tintMid:"rgba(0,122,255,.75)",
     chipInk:"#fff", ink:"#0d0d0f", dim:"#98989d", body:"#515154",
+    volBg:"rgba(60,60,67,.045)",
     certBg:"#ffffff", certLine:"rgba(0,0,0,.12)", certLine2:"rgba(0,0,0,.05)",
   };
 }
@@ -961,15 +985,18 @@ function openHistDetail(g) {
     <div class="stat"><div class="k">十局全躺平</div><div class="v ${cls(g.bench_ret_pct)}">${fmtP(g.bench_ret_pct)}</div><div class="d">假设每局都满仓买入并拿到底</div></div>
     <div class="stat"><div class="k">最大回撤</div><div class="v">${(+g.mdd_pct).toFixed(1)}%</div><div class="d">全程资产曲线峰谷</div></div>
     <div class="stat"><div class="k">操作次数</div><div class="v">${g.trades}</div><div class="d">十局平均 ${(g.trades / 10).toFixed(1)} 次/局</div></div>`;
-  /* 逐局数据用与全站一致的紧凑总览表：一局一行，不再用大卡片铺开 */
+  /* 逐局数据用与全站一致的紧凑总览表：一局一行，行为标签（追高/卖飞/观望）直接融进行内 */
+  const hasRoundFlags = rounds.length > 0 && rounds.every(rd => Array.isArray(rd.flags));
   $("hdd-rounds").innerHTML = rounds.length ? `
     <div class="rounds-sum">
-      <div class="rrow head"><span>局</span><span>标的</span><span>本局收益</span><span>vs 躺平</span><span>操作</span></div>
+      <div class="rrow head"><span>局</span><span>标的 / 行为标签</span><span>本局收益</span><span>vs 躺平</span><span>操作</span></div>
       ${rounds.map(rd => {
         const ex = rd.ret_pct - rd.bench_pct;
+        const chips = (rd.flags || []).map(l =>
+          `<span class="mf ${l.includes("观望") ? "good" : "bad"}">${l}</span>`).join("");
         return `<div class="rrow">
           <span class="rr-no">第 ${rd.r} 局</span>
-          <span class="rr-name">${rd.name}</span>
+          <span class="rr-name">${rd.name}${chips ? `<span class="mini-flags">${chips}</span>` : ""}</span>
           <span class="rr-v ${cls(rd.ret_pct)}">${fmtP(rd.ret_pct)}</span>
           <span class="rr-v ${cls(ex)}">${(ex >= 0 ? "+" : "") + ex.toFixed(1)} pp</span>
           <span class="rr-ops">${rd.ops === 0 ? "观望" : rd.ops + " 次"}</span>
@@ -977,10 +1004,14 @@ function openHistDetail(g) {
       }).join("")}
     </div>`
     : `<p class="note">这一局的逐局明细没有保存下来，仅显示汇总数据。</p>`;
-  const chips = [
-    ["追高买入", flags.chase], ["恐慌卖出", flags.panic], ["止损离场", flags.cutLoss], ["卖飞", flags.soldFly],
-  ].filter(f => f[1] > 0).map(f => `<span class="flag bad">${f[0]} ×${f[1]}</span>`).join("");
-  $("hdd-flags").innerHTML = chips || `<span class="flag good">无典型行为偏差</span>`;
+  /* 新存档每局已带行为标签：底部统一统计行隐藏，避免重复；旧存档仍显示兜底 */
+  $("hdd-flags").hidden = hasRoundFlags;
+  if (!hasRoundFlags) {
+    const chips = [
+      ["追高买入", flags.chase], ["恐慌卖出", flags.panic], ["止损离场", flags.cutLoss], ["卖飞", flags.soldFly],
+    ].filter(f => f[1] > 0).map(f => `<span class="flag bad">${f[0]} ×${f[1]}</span>`).join("");
+    $("hdd-flags").innerHTML = chips || `<span class="flag good">无典型行为偏差</span>`;
+  }
   /* 当时的体检总评 + AI 深度分析（AI 异步补写进 detail，旧存档可能没有） */
   const aiEl = $("hdd-ai");
   const ai = det.ai, sum = det.summary;
@@ -1589,11 +1620,13 @@ function drawChart() {
     ctx.fillRect(x - bw/2, Y(Math.max(o, c)), bw, Math.max(1.5, Y(Math.min(o, c)) - Y(Math.max(o, c))));
   }
 
-  /* 成交量副图：独立区域，与价格主图分离，互不遮挡 */
+  /* 成交量副图：独立区域 + 底色带 + 分隔线，与价格主图明确区分 */
   if (k.v) {
     let vmax = 0;
     for (let j = wStart; j <= i; j++) vmax = Math.max(vmax, k.v[j]);
     if (vmax > 0) {
+      ctx.fillStyle = P.volBg;
+      ctx.fillRect(L, volTop, plotW, volH + 6);
       const bw = Math.max(2, cw * 0.62);
       for (let j = wStart; j <= i; j++) {
         const upDay = k.c[j] >= k.o[j];
@@ -1602,10 +1635,10 @@ function drawChart() {
         ctx.fillStyle = upDay ? P.legendUp : P.legendDown;
         ctx.fillRect(x - bw/2, volTop + volH - h, bw, h);
       }
-      ctx.fillStyle = P.axis3; ctx.font = "9px -apple-system, 'PingFang SC', sans-serif";
-      ctx.textAlign = "left"; ctx.fillText("成交量", L + 2, volTop - 4);
+      ctx.fillStyle = P.gray; ctx.font = "600 11px -apple-system, 'PingFang SC', sans-serif";
+      ctx.textAlign = "left"; ctx.fillText("成交量", L + 2, volTop - 5);
       ctx.strokeStyle = P.grid2;
-      ctx.beginPath(); ctx.moveTo(L, volTop + volH + 0.5); ctx.lineTo(W - RIGHT, volTop + volH + 0.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(L, volTop + volH + 6.5); ctx.lineTo(W - RIGHT, volTop + volH + 6.5); ctx.stroke();
     }
   }
 
@@ -1819,9 +1852,21 @@ function showReport() {
                  bench_ret_pct: +benchRet.toFixed(2), tax_yuan: Math.round(tax), mdd_pct: +(mdd * 100).toFixed(1),
                  trades: userT.length, mbti_self: mbti.self, mbti_measured: mbti.letters,
                  mbti_name: mbtiType(mbti.letters).name },
-      detail: { rounds: G.rounds.map(rd => ({ r: rd.r + 1, name: G.deck[rd.r].name,
-                 ret_pct: +(rd.ret * 100).toFixed(2), bench_pct: +(rd.benchRet * 100).toFixed(2),
-                 ops: rd.trades.filter(t => !t.forced).length })),
+      detail: { rounds: G.rounds.map(rd => {
+                 /* 每局行为标签（追高/卖飞/观望等）随存档落库，历史详情页直接融进行内 */
+                 const k = G.deck[rd.r].k;
+                 const fly = rd.trades.filter(t => {
+                   if (t.forced || !(t.action.includes("卖出") || t.action.includes("清仓"))) return false;
+                   const fut = k.c.slice(t.i + 1, t.i + 11);
+                   return fut.length && Math.max(...fut) >= t.price * 1.10 && t.price >= t.cost * 0.98;
+                 }).length;
+                 const fl = E.roundFlags(rd.trades);
+                 if (fly) fl.push(["bad", "卖飞 ×" + fly]);
+                 return { r: rd.r + 1, name: G.deck[rd.r].name,
+                          ret_pct: +(rd.ret * 100).toFixed(2), bench_pct: +(rd.benchRet * 100).toFixed(2),
+                          ops: rd.trades.filter(t => !t.forced).length,
+                          flags: fl.filter(f => f[1] !== "无典型偏差").map(f => f[1]) };
+               }),
                 flags: { chase: chase.length, panic: panic.length, cutLoss: cutLoss.length, soldFly: soldFly.length },
                 summary: lines.join("\n\n") },
       quiz: quizAns,
@@ -2087,7 +2132,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.23",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.24",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
