@@ -2,8 +2,6 @@
 
 > 用十局**真实历史行情**测出你的「炒股 MBTI」——你只管操作，AI 告诉你情绪值多少钱。
 
-线上地址：http://123.206.228.95:8741 （腾讯云轻量服务器）
-
 ## 这是什么
 
 一个炒股行为体检小游戏：
@@ -50,7 +48,7 @@ node --test tests/game-core.test.mjs   # 15 项
 
 ## 生产部署
 
-腾讯云轻量服务器：nginx(8741) 反代 → systemd 服务 `timetrader`（python server.py，127.0.0.1:8741，`EnvironmentFile` 注入 key，PATH 需含 node 供 CLI 通道使用）。更新流程：`git pull && systemctl restart timetrader`。HTML 响应头 `Cache-Control: no-store`，发版即刷新生效。
+部署于腾讯云轻量服务器（线上地址不对外公开）：nginx 反代 → systemd 服务 `timetrader`（python server.py，仅监听 127.0.0.1，`EnvironmentFile` 注入 key，PATH 需含 node 供 CLI 通道使用）。更新流程：`git pull && systemctl restart timetrader`。HTML 响应头 `Cache-Control: no-store`，发版即刷新生效。
 
 ## 目录结构
 
