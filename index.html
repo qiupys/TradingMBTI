@@ -339,13 +339,17 @@
   #settle .hero-actions { margin: 0; }
   #settle .hero-actions .btn { width: 100%; min-height: 46px; font-size: 15px; }
 
-  /* ---------- 总报告 ---------- */
-  .report { display: grid; grid-template-columns: 1fr 372px; gap: 24px; align-items: start; }
+  /* ---------- 总报告（单列全宽：证书已移至底部，不再需要右栏） ---------- */
+  .report { display: grid; grid-template-columns: 1fr; gap: 0; align-items: start; }
   @media (max-width: 900px) { .report { grid-template-columns: 1fr; } }
+  .report-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    flex-wrap: wrap; margin: 14px 0 4px; }
+  .report-bar .cert-cap { margin: 0; }
   .reveal { color: var(--ink-dim); font-size: 15px; margin-bottom: 6px; }
   .reveal b { color: var(--ink); font-size: 20px; font-weight: 600; letter-spacing: -.02em; }
   .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 14px; margin: 20px 0; }
-  .report .stat-grid { grid-template-columns: repeat(3, 1fr); }
+  #screen-report .stat-grid { grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 900px) { #screen-report .stat-grid { grid-template-columns: repeat(2, 1fr); } }
   #screen-histdetail .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .stat { background: var(--panel); border-radius: var(--radius); padding: 18px 20px 16px; box-shadow: var(--card-shadow); }
   .stat .k { font-size: 12px; color: var(--ink-faint); }
@@ -382,7 +386,7 @@
   .mbti-sec { font-size: 15px; color: var(--ink-dim); margin: 14px 0; line-height: 1.65; }
   .mbti-sec b { display: block; color: var(--ink-faint); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
   .mbti-sec ul { margin: 4px 0 0 20px; }
-  .report-actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .report-actions { margin-top: 0; display: flex; gap: 10px; flex-wrap: wrap; }
   .cert-block { margin: 24px auto 0; max-width: 750px; }
   .cert-pending { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
     background: var(--panel); border-radius: var(--radius); padding: 64px 24px; box-shadow: var(--card-shadow); }
@@ -559,7 +563,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.19</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.20</span></div>
 </header>
 
 <main class="wrap">
@@ -743,33 +747,29 @@
     </div>
   </div>
 
-  <!-- 总报告 -->
+  <!-- 总报告（单列全宽） -->
   <section id="screen-report" class="screen">
     <div class="reveal" id="rp-reveal"></div>
-    <div class="report">
-      <div>
-        <div class="stat-grid" id="rp-stats"></div>
-        <div id="rp-rounds"></div>
-        <div class="flags" id="rp-flags"></div>
-        <div class="tier-ladder" id="rp-tiers"></div>
-        <div class="ai-card">
-          <h4><span class="dot"></span>逐段复盘 · 每一局都算得清 · <span id="rp-tier"></span></h4>
-          <div class="rp-save" id="rp-save"></div>
-          <div id="ai-text"></div>
-        </div>
-        <div class="ai-card" id="mbti-card">
-          <h4><span class="dot"></span>AI 深度分析 · 炒股 MBTI</h4>
-          <div id="mbti-body"><span class="caret"></span></div>
-        </div>
+    <div class="report-bar">
+      <div class="cert-cap">体检证书将在 AI 深度分析完成后于页面底部自动生成 · 长图保存后可直接转发微信</div>
+      <div class="report-actions">
+        <button class="btn primary" id="btnDownload">下载体检证书</button>
+        <button class="btn" id="btnAgain">再来一局</button>
+        <button class="btn" id="btnHistReport">历史战绩</button>
       </div>
-      <div>
-        <div class="cert-cap" style="margin-top:2px">体检证书将在 AI 深度分析完成后于页面底部自动生成 · 长图保存后可直接转发微信</div>
-        <div class="report-actions">
-          <button class="btn primary" id="btnDownload">下载体检证书</button>
-          <button class="btn" id="btnAgain">再来一局</button>
-          <button class="btn" id="btnHistReport">历史战绩</button>
-        </div>
-      </div>
+    </div>
+    <div class="stat-grid" id="rp-stats"></div>
+    <div id="rp-rounds"></div>
+    <div class="flags" id="rp-flags"></div>
+    <div class="tier-ladder" id="rp-tiers"></div>
+    <div class="ai-card">
+      <h4><span class="dot"></span>逐段复盘 · 每一局都算得清 · <span id="rp-tier"></span></h4>
+      <div class="rp-save" id="rp-save"></div>
+      <div id="ai-text"></div>
+    </div>
+    <div class="ai-card" id="mbti-card">
+      <h4><span class="dot"></span>AI 深度分析 · 炒股 MBTI</h4>
+      <div id="mbti-body"><span class="caret"></span></div>
     </div>
     <!-- 证书全宽展示：AI 深度分析完成后才生成，750 设计宽原尺寸渲染，文字清晰可读 -->
     <div class="cert-block">
@@ -1707,7 +1707,7 @@ function showReport() {
   $("rp-stats").innerHTML = `
     <div class="stat"><div class="k">最终资产</div><div class="v">${fmtW(finalV)}</div><div class="d">总收益 ${fmtP(userRet)}</div></div>
     <div class="stat"><div class="k">十局全躺平基准</div><div class="v ${cls(benchRet)}">${fmtP(benchRet)}</div><div class="d">假设每局都满仓买入并拿到底</div></div>
-    <div class="stat"><div class="k">${tax < 0 ? (noTrade ? "全程踏空成本" : "情绪税") : "逆势阿尔法"}</div><div class="v ${tax<0?"down":"up"}">${fmtW(Math.abs(tax))}</div><div class="d">${tax<0?(noTrade?"零操作少赚的部分，是机会成本而非情绪税":"你比躺平的自己少赚的部分"):"你跑赢躺平自己的部分"}</div></div>
+    <div class="stat"><div class="k">${tax < 0 ? (noTrade ? "全程踏空成本" : "情绪税") : "逆势阿尔法"}</div><div class="v ${tax<0?"down":"up"}">${tax<0?"-":"+"}${fmtW(Math.abs(tax))}</div><div class="d">${tax<0?(noTrade?"零操作少赚的部分，是机会成本而非情绪税":"你比躺平的自己少赚的部分"):"你跑赢躺平自己的部分"}</div></div>
     <div class="stat"><div class="k">最大回撤</div><div class="v">${(mdd*100).toFixed(1)}%</div><div class="d">全程资产曲线峰谷</div></div>
     <div class="stat"><div class="k">操作次数</div><div class="v">${userT.length}</div><div class="d">十局平均 ${(userT.length/ROUNDS).toFixed(1)} 次/局</div></div>`;
 
@@ -2099,7 +2099,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.19",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.20",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
