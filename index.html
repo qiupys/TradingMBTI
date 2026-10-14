@@ -31,6 +31,8 @@
     --tint: #0071e3;
     --tint-h: #0077ed;
     --tint-ink: #ffffff;
+    --logo-bg: #0071e3;
+    --logo-candle: #ffd60a;
     --up-h: #e6362b;
     --down-h: #2aa14c;
     --gold: #b45309;
@@ -69,17 +71,19 @@
     --ink-faint: rgba(235,235,245,.36);
     --up: #ff453a;
     --down: #30d158;
-    /* 夜间主题专属强调色：时光机金 —— 与日间蓝是两套独立配色 */
-    --tint: #ffd60a;
-    --tint-h: #ffe23c;
-    --tint-ink: #3a2e00;
+    /* 夜间主题专属强调色：琥珀黄 —— 比荧光金更沉稳，与日间蓝是两套独立配色 */
+    --tint: #f2c14e;
+    --tint-h: #f6cd6e;
+    --tint-ink: #33270a;
+    --logo-bg: #6b4e16;
+    --logo-candle: #ffd60a;
     --up-h: #ff6961;
     --down-h: #5fe08a;
-    --gold: #ffd60a;
+    --gold: #f2c14e;
     --fill: rgba(120,120,128,.24);
     --fill-2: rgba(120,120,128,.16);
     --fill-h: rgba(120,120,128,.32);
-    --tint-fill: rgba(255,214,10,.14);
+    --tint-fill: rgba(242,193,78,.15);
     --up-fill: rgba(255,69,58,.16);
     --up-fill-h: rgba(255,69,58,.26);
     --down-fill: rgba(48,209,88,.16);
@@ -90,7 +94,7 @@
     --tab-shadow: 0 2px 8px rgba(0,0,0,.28);
     --scrim: rgba(0,0,0,.6);
     --scroll-thumb: rgba(255,255,255,.14);
-    --sel: rgba(255,214,10,.3);
+    --sel: rgba(242,193,78,.3);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -157,10 +161,10 @@
   /* ---- 渐变 Hero（品牌蓝 · 参考 Robinhood/富途行情站首屏）---- */
   .hero-g { position: relative; overflow: hidden;
     background: linear-gradient(135deg, #0a84ff 0%, #0060df 52%, #0044a8 100%); color: #fff; }
-  :root[data-theme="dark"] .hero-g { background: linear-gradient(135deg, #6b5200 0%, #46360a 55%, #241c04 100%); }
-  :root[data-theme="dark"] .hero-g .btn.primary { background: #ffd60a; color: #3a2e00; }
-  :root[data-theme="dark"] .hero-g .btn.primary:hover:not(:disabled) { background: #ffe23c; }
-  :root[data-theme="dark"] .hero-g .auth-tab.on { background: #ffd60a; color: #3a2e00; }
+  :root[data-theme="dark"] .hero-g { background: linear-gradient(135deg, #7a5a1c 0%, #4d3a12 55%, #2a1f08 100%); }
+  :root[data-theme="dark"] .hero-g .btn.primary { background: #f2c14e; color: #33270a; }
+  :root[data-theme="dark"] .hero-g .btn.primary:hover:not(:disabled) { background: #f6cd6e; }
+  :root[data-theme="dark"] .hero-g .auth-tab.on { background: #f2c14e; color: #33270a; }
   .hero-g::after { content: ""; position: absolute; right: -20px; bottom: -12px; width: 380px; height: 200px;
     pointer-events: none; opacity: .5;
     background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 380 200'%3E%3Cpath d='M0 170 L40 150 L80 158 L120 120 L160 132 L200 96 L240 110 L280 70 L320 84 L380 30' fill='none' stroke='rgba(255,255,255,.35)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M0 170 L40 150 L80 158 L120 120 L160 132 L200 96 L240 110 L280 70 L320 84 L380 30 L380 200 L0 200 Z' fill='rgba(255,255,255,.06)'/%3E%3C/svg%3E") no-repeat right bottom / contain; }
@@ -168,7 +172,7 @@
   .hero-g h2 { color: #fff; }
   .hero-g p { color: rgba(255,255,255,.85); }
   .hero-g .pill { background: rgba(255,255,255,.16); color: #fff; }
-  .hero-g .pill.gold { background: rgba(255,214,10,.22); color: #ffd60a; }
+  .hero-g .pill.gold { background: rgba(242,193,78,.22); color: #f2c14e; }
   .hero-g .fine { color: rgba(255,255,255,.55); }
   .hero-g .btn { background: rgba(255,255,255,.16); color: #fff; }
   .hero-g .btn:hover:not(:disabled) { background: rgba(255,255,255,.26); }
@@ -556,7 +560,7 @@
 <body>
 <header class="wrap">
   <div class="brand">
-    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="var(--tint)"/><path d="M18 14v6M18 44v6M14 20h8v24h-8z" fill="#fff"/><path d="M32 10v8M32 38v6M28 18h8v20h-8z" fill="#ffd60a"/><path d="M46 22v4M46 44v8M42 26h8v18h-8z" fill="#fff"/></svg>
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="var(--logo-bg)"/><path d="M18 14v6M18 44v6M14 20h8v24h-8z" fill="#fff"/><path d="M32 10v8M32 38v6M28 18h8v20h-8z" fill="var(--logo-candle)"/><path d="M46 22v4M46 44v8M42 26h8v18h-8z" fill="#fff"/></svg>
     <h1>K线时光机</h1>
     <span class="sub">韭菜体检中心</span>
     <div class="user-chip" id="userChip" hidden>
@@ -569,7 +573,7 @@
       <svg class="ico-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 14.8A8.9 8.9 0 0 1 9.2 3.3a8.9 8.9 0 1 0 11.5 11.5z" fill="currentColor"/></svg>
     </button>
   </div>
-  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.24</span></div>
+  <div class="tagline">十局真实历史行情 · 每局一只真实标的 · 你只管操作，AI 告诉你情绪值多少钱 <span class="ver">v0.25</span></div>
 </header>
 
 <main class="wrap">
@@ -852,8 +856,8 @@ function PAL() {
     gray:"#8e8e93", axis:"rgba(142,142,147,.4)", axis2:"rgba(142,142,147,.28)", axis3:"rgba(142,142,147,.7)",
     up:"#ff453a", down:"#30d158", upSoft:"#ff6961", downSoft:"#5fe08a",
     legendUp:"rgba(255,105,97,.65)", legendDown:"rgba(95,224,138,.65)",
-    /* 夜间主题强调色 = 时光机金（与日间蓝为两套独立配色） */
-    tint:"#ffd60a", tintSoft:"rgba(255,214,10,.5)", tintMid:"rgba(255,214,10,.75)",
+    /* 夜间主题强调色 = 琥珀黄（与日间蓝为两套独立配色） */
+    tint:"#f2c14e", tintSoft:"rgba(242,193,78,.5)", tintMid:"rgba(242,193,78,.75)",
     chipInk:"#fff", ink:"#ffffff", dim:"#98989d", body:"#c7c7cc",
     volBg:"rgba(120,120,128,.09)",
     certBg:"#1c1c1e", certLine:"rgba(255,255,255,.1)", certLine2:"rgba(255,255,255,.06)",
@@ -2132,7 +2136,7 @@ function renderCert() {
 
   /* 页脚 */
   y += 6;
-  ["真实历史行情 · 定点复权 · 体检引擎 v0.24",
+  ["真实历史行情 · 定点复权 · 体检引擎 v0.25",
    "十局真实行情重演 · 行为金融学体检 · AI 炒股 MBTI",
    "OPC 2026 1028 创新挑战赛 · Make Idea Happen With AI"].forEach(tx => {
     at(t => center(t, P.gray, "13" + FS, tx));
